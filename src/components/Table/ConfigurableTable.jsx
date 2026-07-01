@@ -68,7 +68,7 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     if (type === 'percent') {
       let pct = parseFloat(cleaned.replace(',', '.'))
       if (isNaN(pct)) pct = 0
-      if (pct > 100) {
+      if (field === 'descUnitPerc' && pct > 100) {
         pct = 100
         setLocalVal('100')
       }
