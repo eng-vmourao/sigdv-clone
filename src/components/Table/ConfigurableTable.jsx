@@ -3,7 +3,7 @@ import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS } from '../.
 import { formatByType, parseByType } from '../../utils/formatters'
 import { validateRow } from '../../utils/validators'
 
-const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
+const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
   const [localVal, setLocalVal] = useState(() => {
     if (type === 'percent') return value ? (value * 100).toFixed(2) : ''
     return value ?? ''
@@ -64,6 +64,19 @@ const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
     }
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${field}"]`)
+      if (next) {
+        next.focus()
+        if (typeof next.select === 'function') {
+          next.select()
+        }
+      }
+    }
+  }
+
   return (
     <>
       <input
@@ -71,8 +84,11 @@ const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
         value={localVal}
         onChange={handleChange}
         onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         style={style}
+        data-row={rowIndex}
+        data-field={field}
       />
       {error && <div className={`alert-${error.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{error.message}</div>}
     </>
@@ -158,6 +174,15 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
             <select
               value={value || ''}
               onChange={e => handleCellChange(rowIndex, col, e.target.value)}
+              data-row={rowIndex}
+              data-field={col}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${col}"]`)
+                  if (next) next.focus()
+                }
+              }}
             >
               <option value="">Selecione</option>
               {ANULAR_OPTIONS.map(opt => (
@@ -178,6 +203,8 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
             placeholder={type === 'percent' ? '0,00' : '0'} 
             style={{ textAlign: type === 'currency' || type === 'quantity' || type === 'percent' ? 'right' : 'left' }}
             error={cellError}
+            rowIndex={rowIndex}
+            field={col}
           />
         </td>
       )
