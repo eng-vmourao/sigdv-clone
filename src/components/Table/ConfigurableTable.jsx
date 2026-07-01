@@ -65,6 +65,9 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
   }
 
   const handleKeyDown = (e) => {
+    const editables = Array.from(e.currentTarget.closest('tr').querySelectorAll('input, select'))
+    const currentIndex = editables.indexOf(e.currentTarget)
+
     if (e.key === 'Enter' || e.key === 'ArrowDown') {
       e.preventDefault()
       const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${field}"]`)
@@ -77,6 +80,24 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       const prev = document.querySelector(`[data-row="${rowIndex - 1}"][data-field="${field}"]`)
+      if (prev) {
+        prev.focus()
+        if (typeof prev.select === 'function') {
+          prev.select()
+        }
+      }
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      const next = editables[currentIndex + 1]
+      if (next) {
+        next.focus()
+        if (typeof next.select === 'function') {
+          next.select()
+        }
+      }
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      const prev = editables[currentIndex - 1]
       if (prev) {
         prev.focus()
         if (typeof prev.select === 'function') {
@@ -186,6 +207,9 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
               data-row={rowIndex}
               data-field={col}
               onKeyDown={e => {
+                const editables = Array.from(e.currentTarget.closest('tr').querySelectorAll('input, select'))
+                const currentIndex = editables.indexOf(e.currentTarget)
+
                 if (e.key === 'Enter' || e.key === 'ArrowDown') {
                   e.preventDefault()
                   const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${col}"]`)
@@ -193,6 +217,14 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
                 } else if (e.key === 'ArrowUp') {
                   e.preventDefault()
                   const prev = document.querySelector(`[data-row="${rowIndex - 1}"][data-field="${col}"]`)
+                  if (prev) prev.focus()
+                } else if (e.key === 'ArrowRight') {
+                  e.preventDefault()
+                  const next = editables[currentIndex + 1]
+                  if (next) next.focus()
+                } else if (e.key === 'ArrowLeft') {
+                  e.preventDefault()
+                  const prev = editables[currentIndex - 1]
                   if (prev) prev.focus()
                 }
               }}
