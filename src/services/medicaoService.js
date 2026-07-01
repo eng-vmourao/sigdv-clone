@@ -140,6 +140,20 @@ export function criarMedicao(contratoId, dados) {
 }
 
 /**
+ * Atualiza dados gerais de uma medição existente
+ */
+export function atualizarMedicao(contratoId, medicaoId, dados) {
+  const lista = medicoesState[contratoId];
+  if (!lista) return null;
+  const index = lista.findIndex(m => m.id === medicaoId);
+  if (index >= 0) {
+    lista[index] = { ...lista[index], ...dados };
+    return lista[index];
+  }
+  return null;
+}
+
+/**
  * Atualiza itens da medição
  */
 export function atualizarItensMedicao(medicaoId, itensAtualizados) {
@@ -155,4 +169,4 @@ export function resetMedicoes() {
   medicoesState = JSON.parse(JSON.stringify(medicoes));
 }
 
-export default { listarMedicoes, getMedicao, getItensMedicaoComCalculos, excluirMedicao, criarMedicao, atualizarItensMedicao };
+export default { listarMedicoes, getMedicao, getItensMedicaoComCalculos, excluirMedicao, criarMedicao, atualizarItensMedicao, atualizarMedicao };

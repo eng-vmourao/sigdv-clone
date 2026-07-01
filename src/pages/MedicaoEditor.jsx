@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getContrato } from '../services/contratoService'
-import { getMedicao, getItensMedicaoComCalculos, criarMedicao, atualizarItensMedicao } from '../services/medicaoService'
+import { getMedicao, getItensMedicaoComCalculos, criarMedicao, atualizarItensMedicao, atualizarMedicao } from '../services/medicaoService'
 import { calcularResumoMedicao } from '../services/calculoService'
 import CollapsibleSection from '../components/UI/CollapsibleSection'
 import ContratoInfoBar from '../components/Contrato/ContratoInfoBar'
@@ -60,7 +60,7 @@ export default function MedicaoEditor() {
       }
       
       const calcPeriodo = Math.max(1, diffYears + 1)
-      setPeriodo(calcPeriodo)
+      setPeriodo(`P${calcPeriodo}`)
     }
   }, [dataInicio, contrato?.dataInicio, isNew])
 
@@ -138,7 +138,7 @@ export default function MedicaoEditor() {
         periodoInicio: dataInicio,
         periodoTermino: dataTermino,
         nrProtocolo: nrProtocolo,
-        periodo: Number(periodo) || 1,
+        periodo: periodo,
         medicaoR$: itens.reduce((s, i) => s + (i.valorMedidoPeriodo || 0), 0)
       })
       atualizarItensMedicao(novaMedicao.id, itens)
@@ -146,6 +146,13 @@ export default function MedicaoEditor() {
       setSaveMessage('Medição criada com sucesso!')
       setTimeout(() => navigate(`/contratos/${contratoId}`), 1000)
     } else {
+      atualizarMedicao(Number(contratoId), Number(medicaoId), {
+        periodoInicio: dataInicio,
+        periodoTermino: dataTermino,
+        periodo: periodo,
+        nrProtocolo: nrProtocolo,
+        medicaoR$: itens.reduce((s, i) => s + (i.valorMedidoPeriodo || 0), 0)
+      })
       atualizarItensMedicao(Number(medicaoId), itens)
       setHasChanges(false)
       setSaveMessage('Alterações salvas com sucesso!')
@@ -189,7 +196,6 @@ export default function MedicaoEditor() {
                     className="form-control"
                     value={dataInicio}
                     onChange={e => { setDataInicio(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
                   />
                 </div>
                 <div className="form-group">
@@ -199,17 +205,15 @@ export default function MedicaoEditor() {
                     className="form-control"
                     value={dataTermino}
                     onChange={e => { setDataTermino(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Período</label>
                   <input
-                    type="number"
+                    type="text"
                     className="form-control"
                     value={periodo}
                     onChange={e => { setPeriodo(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
                   />
                 </div>
                 <div className="form-group">
@@ -218,7 +222,6 @@ export default function MedicaoEditor() {
                     className="form-control"
                     value={nrProtocolo}
                     onChange={e => { setNrProtocolo(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
                     placeholder="Opcional"
                   />
                 </div>
