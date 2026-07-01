@@ -80,18 +80,18 @@ const calcDescUnitTotal = (row) => {
   const base = row.precoUnitVigente || 0;
   const perc = row.descUnitPerc || 0;
   const valor = row.descUnitValor || 0;
-  return base * perc + valor;
+  return Number((base * perc + valor).toFixed(2));
 };
 
 const calcReajUnitTotal = (row) => {
   const base = row.precoUnitVigente || 0;
   const perc = row.reajUnitPerc || 0;
   const valor = row.reajUnitValor || 0;
-  return base * perc + valor;
+  return Number((base * perc + valor).toFixed(2));
 };
 
 const calcValorTotalVigente = (row) => {
-  return (row.qtdVigente || 0) * (row.precoUnitVigente || 0);
+  return Number(((row.qtdVigente || 0) * (row.precoUnitVigente || 0)).toFixed(2));
 };
 
 /**
@@ -116,8 +116,8 @@ export const TAM_TYPES = {
       const reajUnitTotal = calcReajUnitTotal(row);
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) + (row.variacaoQtd || 0);
-      const precoUnitFinal = (row.precoUnitVigente || 0) - descUnitTotal + reajUnitTotal;
-      const valorFinal = qtdFinal * precoUnitFinal;
+      const precoUnitFinal = Number(((row.precoUnitVigente || 0) - descUnitTotal + reajUnitTotal).toFixed(2));
+      const valorFinal = Number((qtdFinal * precoUnitFinal).toFixed(2));
       return { ...row, descUnitTotal, reajUnitTotal, valorTotalVigente, qtdFinal, precoUnitFinal, valorFinal };
     },
     totals: {
@@ -148,8 +148,8 @@ export const TAM_TYPES = {
       const reajUnitTotal = calcReajUnitTotal(row);
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) + (row.variacaoQtd || 0);
-      const precoUnitFinal = (row.precoUnitVigente || 0) - descUnitTotal + reajUnitTotal;
-      const valorFinal = qtdFinal * precoUnitFinal;
+      const precoUnitFinal = Number(((row.precoUnitVigente || 0) - descUnitTotal + reajUnitTotal).toFixed(2));
+      const valorFinal = Number((qtdFinal * precoUnitFinal).toFixed(2));
       return { ...row, descUnitTotal, reajUnitTotal, valorTotalVigente, qtdFinal, precoUnitFinal, valorFinal };
     },
     totals: {
@@ -176,7 +176,7 @@ export const TAM_TYPES = {
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) + (row.qtdAcrescida || 0);
-      const valorFinal = qtdFinal * (row.precoUnitVigente || 0);
+      const valorFinal = Number((qtdFinal * (row.precoUnitVigente || 0)).toFixed(2));
       return { ...row, valorTotalVigente, qtdFinal, valorFinal };
     },
     totals: {
@@ -205,7 +205,7 @@ export const TAM_TYPES = {
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) - (row.qtdSuprimida || 0);
-      const valorFinal = qtdFinal * (row.precoUnitVigente || 0);
+      const valorFinal = Number((qtdFinal * (row.precoUnitVigente || 0)).toFixed(2));
       return { ...row, valorTotalVigente, qtdFinal, valorFinal };
     },
     totals: {
@@ -263,8 +263,8 @@ export const TAM_TYPES = {
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const reajUnitTotal = calcReajUnitTotal(row);
-      const precoUnitFinal = (row.precoUnitVigente || 0) + reajUnitTotal;
-      const valorFinal = (row.qtdVigente || 0) * precoUnitFinal;
+      const precoUnitFinal = Number(((row.precoUnitVigente || 0) + reajUnitTotal).toFixed(2));
+      const valorFinal = Number(((row.qtdVigente || 0) * precoUnitFinal).toFixed(2));
       return { ...row, valorTotalVigente, reajUnitTotal, precoUnitFinal, valorFinal };
     },
     totals: {
@@ -292,8 +292,8 @@ export const TAM_TYPES = {
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const descUnitTotal = calcDescUnitTotal(row);
-      const precoUnitFinal = (row.precoUnitVigente || 0) - descUnitTotal;
-      const valorFinal = (row.qtdVigente || 0) * precoUnitFinal;
+      const precoUnitFinal = Number(((row.precoUnitVigente || 0) - descUnitTotal).toFixed(2));
+      const valorFinal = Number(((row.qtdVigente || 0) * precoUnitFinal).toFixed(2));
       return { ...row, valorTotalVigente, descUnitTotal, precoUnitFinal, valorFinal };
     },
     totals: {

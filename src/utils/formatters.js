@@ -53,15 +53,12 @@ export function formatQuantity(value, decimals = 4) {
  */
 export function parsePercent(input) {
   if (input === null || input === undefined || input === '') return 0;
+  if (typeof input === 'number') return input;
   let str = String(input).trim().replace('%', '');
-  // Normaliza separador decimal BR para ponto
   str = str.replace(',', '.');
   const num = parseFloat(str);
   if (isNaN(num)) return 0;
-  // Se o valor absoluto for >= 1, trata como percentual direto (5 = 5%)
-  if (Math.abs(num) >= 1) return num / 100;
-  // Se for < 1, assume que já é decimal (0.05 = 5%)
-  return num;
+  return num / 100;
 }
 
 /**
@@ -71,6 +68,7 @@ export function parsePercent(input) {
  */
 export function parseCurrency(input) {
   if (input === null || input === undefined || input === '') return 0;
+  if (typeof input === 'number') return input;
   let str = String(input).trim().replace('R$', '').trim();
   // Remove pontos de milhar e troca vírgula decimal por ponto
   str = str.replace(/\./g, '').replace(',', '.');
@@ -85,6 +83,7 @@ export function parseCurrency(input) {
  */
 export function parseQuantity(input) {
   if (input === null || input === undefined || input === '') return 0;
+  if (typeof input === 'number') return input;
   let str = String(input).trim();
   // Se contém vírgula, assume formato BR
   if (str.includes(',')) {
