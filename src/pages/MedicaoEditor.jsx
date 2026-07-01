@@ -289,7 +289,7 @@ export default function MedicaoEditor() {
                   <th>Und.</th>
                   <th style={{ textAlign: 'right' }}>Qtd. Contratada</th>
                   <th style={{ textAlign: 'right' }}>Qtd. Acum. Anterior</th>
-                  <th style={{ textAlign: 'center' }}>Qtd. Medida Período</th>
+                  <th style={{ textAlign: 'center' }}>Qtd. Medida</th>
                   <th style={{ textAlign: 'right' }}>Qtd. Acum. Atual</th>
                   <th style={{ textAlign: 'right' }}>Saldo Qtd.</th>
                   <th style={{ textAlign: 'right' }}>Preço Unit. (R$)</th>
@@ -313,22 +313,14 @@ export default function MedicaoEditor() {
                       <td className="cell-currency">{formatQuantity(item.qtdContratadaVigente)}</td>
                       <td className="cell-currency cell-protected">{formatQuantity(item.qtdAcumuladaAnterior)}</td>
                       
-                      <td className="cell-currency" style={{ padding: 0 }}>
+                      <td className="cell-currency cell-editable" style={{ padding: 4 }}>
                         <CellInput
                           value={item.qtdMedidaPeriodo}
                           type="quantity"
                           field="qtdMedidaPeriodo"
                           onChange={(val) => handleQtdChange(idx, val)}
                           rowIndex={idx}
-                          style={{
-                            width: '100%',
-                            minWidth: 100,
-                            padding: '8px',
-                            textAlign: 'right',
-                            border: 'none',
-                            backgroundColor: 'transparent',
-                            outline: 'none',
-                          }}
+                          style={{ textAlign: 'right' }}
                         />
                       </td>
 
@@ -351,12 +343,12 @@ export default function MedicaoEditor() {
                 <tfoot>
                   <tr className="totals-row">
                     <td colSpan={5}><strong>{itens.length} itens</strong></td>
-                    <td className="cell-currency"><strong>{formatQuantity(itens.reduce((s, i) => s + (i.qtdMedidaPeriodo || 0), 0))}</strong></td>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
                     <td className="cell-currency"><strong>{formatCurrency(totalMedidoPeriodo)}</strong></td>
-                    <td></td>
+                    <td style={{ textAlign: 'center' }}><strong>{itens.filter(i => (i.qtdMedidaPeriodo || 0) > 0).length} Itens medidos</strong></td>
                   </tr>
                 </tfoot>
               )}
