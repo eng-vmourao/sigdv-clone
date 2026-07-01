@@ -373,7 +373,10 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
                   {COLUMN_LABELS[col]}
                   {getColumnState(col) === 'protected' && ' 🔒'}
                   {getColumnState(col) === 'calculated' && (
-                    <span title={CALC_TOOLTIPS[col] || 'Valor calculado'} style={{ cursor: 'help', marginLeft: 4 }}>❔</span>
+                    <span className="custom-tooltip-container">
+                      ❔
+                      <span className="custom-tooltip-text">{CALC_TOOLTIPS[col] || 'Valor calculado'}</span>
+                    </span>
                   )}
                 </th>
               ))}

@@ -290,11 +290,11 @@ export default function MedicaoEditor() {
                   <th style={{ textAlign: 'right' }}>Qtd. Contratada</th>
                   <th style={{ textAlign: 'right' }}>Qtd. Acum. Anterior</th>
                   <th style={{ textAlign: 'center' }}>Qtd. Medida</th>
-                  <th style={{ textAlign: 'right' }}>Qtd. Acum. Atual <span title="Cálculo: Qtd. Acumulada Anterior + Qtd. Medida" style={{ cursor: 'help' }}>❔</span></th>
-                  <th style={{ textAlign: 'right' }}>Saldo Qtd. <span title="Cálculo: Qtd. Contratada - Qtd. Acumulada Atual" style={{ cursor: 'help' }}>❔</span></th>
+                  <th style={{ textAlign: 'right' }}>Qtd. Acum. Atual <span className="custom-tooltip-container">❔<span className="custom-tooltip-text">Cálculo: Qtd. Acumulada Anterior + Qtd. Medida</span></span></th>
+                  <th style={{ textAlign: 'right' }}>Saldo Qtd. <span className="custom-tooltip-container">❔<span className="custom-tooltip-text">Cálculo: Qtd. Contratada - Qtd. Acumulada Atual</span></span></th>
                   <th style={{ textAlign: 'right' }}>Preço Unit. (R$)</th>
-                  <th style={{ textAlign: 'right' }}>Valor Medido (R$) <span title="Cálculo: Qtd. Medida × Preço Unitário" style={{ cursor: 'help' }}>❔</span></th>
-                  <th style={{ textAlign: 'center' }}>Status <span title="Cálculo: Baseado no Saldo (OK se > 0, Zerado se = 0, Negativo se < 0)" style={{ cursor: 'help' }}>❔</span></th>
+                  <th style={{ textAlign: 'right' }}>Valor Medido (R$) <span className="custom-tooltip-container">❔<span className="custom-tooltip-text">Cálculo: Qtd. Medida × Preço Unitário</span></span></th>
+                  <th style={{ textAlign: 'center' }}>Status <span className="custom-tooltip-container">❔<span className="custom-tooltip-text">Cálculo: Baseado no Saldo (OK se &gt; 0, Zerado se = 0, Negativo se &lt; 0)</span></span></th>
                 </tr>
               </thead>
               <tbody>
