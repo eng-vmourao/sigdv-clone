@@ -7,6 +7,7 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
   const [localVal, setLocalVal] = useState(() => {
     if (type === 'percent') return value ? (value * 100).toFixed(2).replace('.', ',') : ''
     if (type === 'currency') return (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : ''
+    if (type === 'quantity') return (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(4).replace('.', ',') : ''
     return (value !== null && value !== undefined && value !== 0) ? value.toString().replace('.', ',') : ''
   })
 
@@ -26,6 +27,12 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
       }
     } else if (type === 'currency') {
       const propVal = (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : ''
+      const localNum = parseFloat(localVal?.toString().replace(',', '.'))
+      if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
+        setLocalVal(propVal)
+      }
+    } else if (type === 'quantity') {
+      const propVal = (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(4).replace('.', ',') : ''
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
         setLocalVal(propVal)
@@ -107,6 +114,8 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
         setLocalVal(value ? (value * 100).toFixed(2).replace('.', ',') : '')
       } else if (type === 'currency') {
         setLocalVal((value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : '')
+      } else if (type === 'quantity') {
+        setLocalVal((value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(4).replace('.', ',') : '')
       } else {
         setLocalVal((value !== null && value !== undefined && value !== 0) ? value.toString().replace('.', ',') : '')
       }
@@ -303,7 +312,7 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
             type={type} 
             value={value} 
             onChange={(val) => handleCellChange(rowIndex, col, val)} 
-            placeholder={(type === 'percent' || type === 'currency') ? '0,00' : '0'} 
+            placeholder={(type === 'percent' || type === 'currency') ? '0,00' : (type === 'quantity' ? '0,0000' : '0')} 
             style={{ textAlign: type === 'currency' || type === 'quantity' || type === 'percent' ? 'right' : 'left' }}
             error={cellError}
             rowIndex={rowIndex}

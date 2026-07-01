@@ -60,7 +60,7 @@ export default function MedicaoEditor() {
       }
       
       const calcPeriodo = Math.max(1, diffYears + 1)
-      setPeriodo(`P${calcPeriodo}`)
+      setPeriodo(calcPeriodo)
     }
   }, [dataInicio, contrato?.dataInicio, isNew])
 
@@ -138,7 +138,7 @@ export default function MedicaoEditor() {
         periodoInicio: dataInicio,
         periodoTermino: dataTermino,
         nrProtocolo: nrProtocolo,
-        periodo: periodo,
+        periodo: Number(periodo) || 1,
         medicaoR$: itens.reduce((s, i) => s + (i.valorMedidoPeriodo || 0), 0)
       })
       atualizarItensMedicao(novaMedicao.id, itens)
@@ -149,7 +149,7 @@ export default function MedicaoEditor() {
       atualizarMedicao(Number(contratoId), Number(medicaoId), {
         periodoInicio: dataInicio,
         periodoTermino: dataTermino,
-        periodo: periodo,
+        periodo: Number(periodo) || 1,
         nrProtocolo: nrProtocolo,
         medicaoR$: itens.reduce((s, i) => s + (i.valorMedidoPeriodo || 0), 0)
       })
@@ -210,7 +210,7 @@ export default function MedicaoEditor() {
                 <div className="form-group">
                   <label className="form-label">Período</label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     value={periodo}
                     onChange={e => { setPeriodo(e.target.value); setHasChanges(true) }}

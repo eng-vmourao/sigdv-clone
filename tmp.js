@@ -4,7 +4,7 @@
  * Recálculo encadeado implementado no service (SIGDV-07)
  */
 
-const medicoes = {
+let medicoes = {
   // Contrato 20.605-2 — 5 medições
   1: [
     { id: 11, numero: 1, contratoId: 1, periodoInicio: '2020-06-16', periodoTermino: '2020-07-15', periodo: 1, prazoVigenteContrato: 1, nrProtocolo: '', medicaoR$: 460896.79, reajusteR$: 0, descontoR$: 0 },
@@ -38,7 +38,7 @@ const medicoes = {
     id: 40 + i + 1, numero: i + 1, contratoId: 4,
     periodoInicio: new Date(2020, 8 + i, 1).toISOString().split('T')[0],
     periodoTermino: new Date(2020, 9 + i, 0).toISOString().split('T')[0],
-    periodo: Math.floor(i / 12) + 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-${2020 + Math.floor((8+i)/12)}-${String(((8+i)%12)+1).padStart(3,'0')}`,
+    periodo: 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-${2020 + Math.floor((8+i)/12)}-${String(((8+i)%12)+1).padStart(3,'0')}`,
     medicaoR$: 1100000 + Math.round(Math.random() * 200000),
     reajusteR$: 0, descontoR$: 0,
   })),
@@ -48,7 +48,7 @@ const medicoes = {
     id: 50 + i + 1, numero: i + 1, contratoId: 5,
     periodoInicio: new Date(2023, 1 + i, 1).toISOString().split('T')[0],
     periodoTermino: new Date(2023, 2 + i, 0).toISOString().split('T')[0],
-    periodo: Math.floor(i / 12) + 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-2023-${String(i+1).padStart(3,'0')}`,
+    periodo: 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-2023-${String(i+1).padStart(3,'0')}`,
     medicaoR$: 480000 + Math.round(Math.random() * 120000),
     reajusteR$: 0, descontoR$: 0,
   })),
@@ -62,7 +62,7 @@ const medicoes = {
         id: cId * 100 + i + 1, numero: i + 1, contratoId: cId,
         periodoInicio: new Date(2021 + Math.floor(i/12), i % 12, 1).toISOString().split('T')[0],
         periodoTermino: new Date(2021 + Math.floor(i/12), (i % 12) + 1, 0).toISOString().split('T')[0],
-        periodo: Math.floor(i / 12) + 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-${2021+Math.floor(i/12)}-${String((i%12)+1).padStart(3,'0')}`,
+        periodo: 1, prazoVigenteContrato: i + 1, nrProtocolo: `P-${2021+Math.floor(i/12)}-${String((i%12)+1).padStart(3,'0')}`,
         medicaoR$: 200000 + Math.round(Math.random() * 800000),
         reajusteR$: 0, descontoR$: 0,
       }))];
@@ -70,4 +70,5 @@ const medicoes = {
   ),
 };
 
-export default medicoes;
+
+; Object.keys(medicoes).forEach(cId => { const contrato = contratos.find(c => c.id == cId); if(!contrato) return; medicoes[cId].forEach(m => { const [aC, mC, dC] = contrato.dataInicio.split('-').map(Number); const [aM, mM, dM] = m.periodoInicio.split('-').map(Number); let diff = aM - aC; const isBefore = mM < mC || (mM === mC && dM < dC); if (isBefore) diff--; m.periodo = Math.max(1, diff + 1); }); }); console.log(JSON.stringify(medicoes, null, 2));
