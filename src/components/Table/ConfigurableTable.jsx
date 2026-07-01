@@ -1,7 +1,83 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS } from '../../config/tamTypes'
 import { formatByType, parseByType } from '../../utils/formatters'
 import { validateRow } from '../../utils/validators'
+
+const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
+  const [localVal, setLocalVal] = useState(() => {
+    if (type === 'percent') return value ? (value * 100).toFixed(2) : ''
+    return value ?? ''
+  })
+
+  // Sincroniza localVal com a prop value quando esta mudar externamente
+  useEffect(() => {
+    // Ignora atualizações se o valor digitado atualmente for parcial (ex: "-", ou terminando com ",")
+    if (localVal === '-' || localVal === '-0' || localVal?.toString().endsWith(',')) {
+      return;
+    }
+
+    if (type === 'percent') {
+      const propVal = value ? (value * 100).toFixed(2) : ''
+      const localNum = parseFloat(localVal?.toString().replace(',', '.'))
+      const propNum = parseFloat(propVal.replace(',', '.'))
+      if (localNum !== propNum && !(isNaN(localNum) && isNaN(propNum))) {
+        setLocalVal(propVal)
+      }
+    } else {
+      const localNum = parseFloat(localVal?.toString().replace(',', '.'))
+      if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
+        setLocalVal(value ?? '')
+      }
+    }
+  }, [value, type])
+
+  const handleChange = (e) => {
+    const newVal = e.target.value
+    setLocalVal(newVal)
+    
+    let parsed
+    if (type === 'percent') {
+      const pct = parseFloat(newVal.replace(',', '.'))
+      parsed = isNaN(pct) ? 0 : pct / 100
+    } else {
+      parsed = parseByType(newVal, type)
+    }
+    
+    // Se for apenas o símbolo "-" ou termina em ",", passamos 0 ou o valor anterior sem quebrar
+    const isPartial = newVal === '-' || newVal === '-0' || newVal === '-,' || newVal.endsWith(',')
+    onChange(isPartial ? 0 : parsed)
+  }
+
+  const handleBlur = () => {
+    // Se ao sair do campo, estiver como "-", "-0", "-0," ou vazio, removemos
+    const cleaned = localVal?.toString().trim()
+    if (cleaned === '-' || cleaned === '-0' || cleaned === '-0,' || cleaned === '') {
+      setLocalVal('')
+      onChange(0)
+    } else {
+      // Formata normalmente no blur
+      if (type === 'percent') {
+        setLocalVal(value ? (value * 100).toFixed(2) : '')
+      } else {
+        setLocalVal(value ?? '')
+      }
+    }
+  }
+
+  return (
+    <>
+      <input
+        type="text"
+        value={localVal}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        style={style}
+      />
+      {error && <div className={`alert-${error.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{error.message}</div>}
+    </>
+  )
+}
 
 /**
  * Tabela genérica configurável — renderiza colunas baseado na configuração do tipo de TAM
@@ -58,60 +134,6 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
     if (config.protected.includes(col)) return 'protected'
     return 'protected'
   }, [config])
-
-const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
-  const [localVal, setLocalVal] = useState(() => {
-    if (type === 'percent') return value ? (value * 100).toFixed(2) : ''
-    return value ?? ''
-  })
-
-  // Sincroniza apenas quando o valor propaga de fora e é diferente
-  if (type !== 'percent' && typeof value === 'number' && parseFloat(localVal?.toString().replace(',','.')) !== value && localVal !== '-' && !localVal?.toString().endsWith(',')) {
-    // Para não sobrescrever o que o usuário digita (ex: '-', '-0,', etc), não atualizamos se localVal já reflete o número
-    // Mas se o valor mudou de verdade externamente, atualizamos:
-  }
-
-  const handleChange = (e) => {
-    const newVal = e.target.value
-    setLocalVal(newVal)
-    
-    let parsed
-    if (type === 'percent') {
-      const pct = parseFloat(newVal.replace(',', '.'))
-      parsed = isNaN(pct) ? 0 : pct / 100
-    } else {
-      parsed = parseByType(newVal, type)
-    }
-    
-    // Se newVal for "-", "-", ou terminar em "," a gente passa 0 pro parent, mas mantém newVal local
-    // Assim o cálculo não quebra com strings
-    const isPartial = newVal === '-' || newVal === '-,' || newVal.endsWith(',')
-    onChange(isPartial ? 0 : parsed)
-  }
-
-  const handleBlur = () => {
-    // Formata o localVal no blur
-    if (type === 'percent') {
-      setLocalVal(value ? (value * 100).toFixed(2) : '')
-    } else {
-      setLocalVal(value ?? '')
-    }
-  }
-
-  return (
-    <>
-      <input
-        type="text"
-        value={localVal}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder={placeholder}
-        style={style}
-      />
-      {error && <div className={`alert-${error.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{error.message}</div>}
-    </>
-  )
-}
 
   // Renderiza célula baseado no estado
   const renderCell = (row, col, rowIndex) => {
