@@ -181,8 +181,17 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
   // Handler para alteração de célula
   const handleCellChange = useCallback((rowIndex, field, rawValue) => {
     const type = COLUMN_TYPES[field]
-    const value = parseByType(rawValue, type)
+    let value = parseByType(rawValue, type)
     const originalRow = rows[rowIndex]
+
+    // Bloqueia desconto R$ (descUnitValor) de ser maior que precoUnitVigente
+    if (field === 'descUnitValor') {
+      const maxAllowed = originalRow.precoUnitVigente || 0
+      if (value > maxAllowed) {
+        value = maxAllowed
+      }
+    }
+
     const updatedRow = { ...originalRow, [field]: value }
     // Recalcula a linha
     const recalculated = config.calcRow(updatedRow)
