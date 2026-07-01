@@ -34,17 +34,39 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
   const handleChange = (e) => {
     let newVal = e.target.value
     
-    // Para desconto e reajuste, não permite sinal de negativo
+    // 1. Remove qualquer caractere que não seja número, vírgula ou sinal de menos
+    let cleaned = newVal.replace(/[^0-9,-]/g, '')
+    
+    // 2. Para desconto e reajuste, bloqueia sinal de negativo
     const isDiscountOrReajuste = field?.startsWith('desc') || field?.startsWith('reaj')
     if (isDiscountOrReajuste) {
-      newVal = newVal.replace('-', '')
+      cleaned = cleaned.replace(/-/g, '')
+    } else {
+      // Garante que o sinal de menos só aparece no início
+      if (cleaned.includes('-')) {
+        const hasMinus = cleaned.startsWith('-');
+        cleaned = (hasMinus ? '-' : '') + cleaned.replace(/-/g, '');
+      }
+    }
+    
+    // 3. Garante no máximo uma vírgula
+    if (cleaned.includes(',')) {
+      const parts = cleaned.split(',')
+      cleaned = parts[0] + ',' + parts.slice(1).join('')
+    }
+    
+    // 4. Limita as casas decimais (2 para moeda/porcentagem, 4 para quantidade)
+    const maxDecimals = (type === 'percent' || type === 'currency') ? 2 : 4
+    if (cleaned.includes(',')) {
+      const [integerPart, decimalPart] = cleaned.split(',')
+      cleaned = integerPart + ',' + decimalPart.slice(0, maxDecimals)
     }
 
-    setLocalVal(newVal)
+    setLocalVal(cleaned)
     
     let parsed
     if (type === 'percent') {
-      let pct = parseFloat(newVal.replace(',', '.'))
+      let pct = parseFloat(cleaned.replace(',', '.'))
       if (isNaN(pct)) pct = 0
       if (pct > 100) {
         pct = 100
@@ -52,7 +74,7 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
       }
       parsed = pct / 100
     } else {
-      parsed = parseByType(newVal, type)
+      parsed = parseByType(cleaned, type)
       // Adicionalmente garante que o valor parseado não é negativo para desconto e reajuste
       if (isDiscountOrReajuste && parsed < 0) {
         parsed = 0
@@ -60,7 +82,7 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     }
     
     // Se for apenas o símbolo "-" ou termina em ",", passamos 0 ou o valor anterior sem quebrar
-    const isPartial = newVal === '-' || newVal === '-0' || newVal === '-,' || newVal.endsWith(',')
+    const isPartial = cleaned === '-' || cleaned === '-0' || cleaned === '-,' || cleaned.endsWith(',')
     onChange(isPartial ? 0 : parsed)
   }
 
