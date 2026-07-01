@@ -4,6 +4,8 @@
 import medicoes from '../data/medicoes';
 import { getItensMedicao } from '../data/itensMedicao';
 
+import itensContrato from '../data/itensContrato';
+
 // Estado local
 let medicoesState = JSON.parse(JSON.stringify(medicoes));
 
@@ -29,7 +31,29 @@ export function getMedicao(medicaoId) {
  * Obtém itens de uma medição com campos calculados
  */
 export function getItensMedicaoComCalculos(medicaoId, contratoId, numero) {
-  const itens = getItensMedicao(medicaoId, contratoId, numero);
+  const itensIniciais = getItensMedicao(medicaoId, contratoId, numero);
+  const contratoItens = itensContrato[contratoId] || [];
+  
+  const medicaoItensMap = new Map(itensIniciais.map(i => [i.codigoItem, i]));
+
+  // Mesclar para garantir que todos os itens do contrato apareçam
+  const itens = contratoItens.map(item => {
+    if (medicaoItensMap.has(item.codigoItem)) {
+      return medicaoItensMap.get(item.codigoItem);
+    }
+    // Item do contrato que não estava na medição (zerado)
+    return {
+      itemId: Date.now() + Math.random(), // id temporário
+      codigoItem: item.codigoItem,
+      descricao: item.descricao,
+      unidade: item.unidade || 'UN',
+      qtdContratadaVigente: item.qtdVigente || 0,
+      qtdAcumuladaAnterior: 0,
+      qtdMedidaPeriodo: 0,
+      precoUnitVigente: item.precoUnitVigente || 0,
+      observacao: '',
+    };
+  });
 
   return itens.map(item => {
     const qtdAcumuladaAtual = (item.qtdAcumuladaAnterior || 0) + (item.qtdMedidaPeriodo || 0);
