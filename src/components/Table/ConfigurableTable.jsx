@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS } from '../../config/tamTypes'
+import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS, CALC_TOOLTIPS } from '../../config/tamTypes'
 import { formatByType, parseByType } from '../../utils/formatters'
 import { validateRow } from '../../utils/validators'
 
@@ -372,6 +372,9 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
                 >
                   {COLUMN_LABELS[col]}
                   {getColumnState(col) === 'protected' && ' 🔒'}
+                  {getColumnState(col) === 'calculated' && (
+                    <span title={CALC_TOOLTIPS[col] || 'Valor calculado'} style={{ cursor: 'help', marginLeft: 4 }}>❔</span>
+                  )}
                 </th>
               ))}
             </tr>

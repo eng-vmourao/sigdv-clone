@@ -26,6 +26,16 @@ export const COLUMN_LABELS = {
   valorFinal: 'Valor Final (R$)',
 };
 
+// Fórmulas para tooltips nas colunas calculadas
+export const CALC_TOOLTIPS = {
+  valorTotalVigente: 'Cálculo: Qtd. Vigente × Preço Unit. Vigente',
+  descUnitTotal: 'Cálculo: Preço Unit. Vigente × Desc. Unit. (%) + Desc. Unit. (R$)',
+  reajUnitTotal: 'Cálculo: Preço Unit. Vigente × Reaj. Unit. (%) + Reaj. Unit. (R$)',
+  qtdFinal: 'Cálculo: Qtd. Vigente + Variações (Acréscimo, Supressão, etc.)',
+  precoUnitFinal: 'Cálculo: Preço Unit. Vigente após Descontos e Reajustes',
+  valorFinal: 'Cálculo: Qtd. Final × Preço Unit. Final'
+};
+
 // Tipo de dado para formatação
 export const COLUMN_TYPES = {
   codigoItem: 'text',
