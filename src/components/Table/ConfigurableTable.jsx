@@ -3,7 +3,7 @@ import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS } from '../.
 import { formatByType, parseByType } from '../../utils/formatters'
 import { validateRow } from '../../utils/validators'
 
-const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
+export const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
   const [localVal, setLocalVal] = useState(() => {
     if (type === 'percent') return value ? (value * 100).toFixed(2).replace('.', ',') : ''
     return value !== null && value !== undefined ? value.toString().replace('.', ',') : ''

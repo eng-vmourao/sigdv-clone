@@ -244,6 +244,16 @@ export default function ContratoDetalhe() {
 
         {/* MEDIÇÃO */}
         <CollapsibleSection title="Medição" defaultOpen={false}>
+          <div className="table-controls">
+            <button className="btn btn-outline" onClick={() => navigate(`/contratos/${id}/medicao/novo`)}>
+              Nova Medição
+            </button>
+            <div className="table-search">
+              <label style={{ marginRight: 4, fontSize: '0.75rem' }}>Pesquisar:</label>
+              <input type="text" placeholder="Buscar..." />
+            </div>
+          </div>
+
           {/* Resumo Geral */}
           {resumo && (
             <div style={{ marginBottom: 16 }}>

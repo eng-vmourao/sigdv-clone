@@ -140,10 +140,19 @@ export function criarMedicao(contratoId, dados) {
 }
 
 /**
+ * Atualiza itens da medição
+ */
+export function atualizarItensMedicao(medicaoId, itensAtualizados) {
+  // Apenas simula a atualização em memória no front-end para fins do protótipo
+  // Num cenário real, isso faria um PUT/POST na API
+  return true;
+}
+
+/**
  * Reset para testes
  */
 export function resetMedicoes() {
   medicoesState = JSON.parse(JSON.stringify(medicoes));
 }
 
-export default { listarMedicoes, getMedicao, getItensMedicaoComCalculos, excluirMedicao, criarMedicao };
+export default { listarMedicoes, getMedicao, getItensMedicaoComCalculos, excluirMedicao, criarMedicao, atualizarItensMedicao };

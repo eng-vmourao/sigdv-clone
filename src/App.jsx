@@ -16,6 +16,7 @@ function App() {
           <Route path="/contratos/:id" element={<ContratoDetalhe />} />
           <Route path="/contratos/:contratoId/tam/novo" element={<TAMEditor />} />
           <Route path="/contratos/:contratoId/tam/:tamId" element={<TAMEditor />} />
+          <Route path="/contratos/:contratoId/medicao/novo" element={<MedicaoEditor />} />
           <Route path="/contratos/:contratoId/medicao/:medicaoId" element={<MedicaoEditor />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
