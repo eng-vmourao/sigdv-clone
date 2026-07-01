@@ -6,6 +6,7 @@ import { validateRow } from '../../utils/validators'
 export const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
   const [localVal, setLocalVal] = useState(() => {
     if (type === 'percent') return value ? (value * 100).toFixed(2).replace('.', ',') : ''
+    if (type === 'currency') return (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : ''
     return value !== null && value !== undefined ? value.toString().replace('.', ',') : ''
   })
 
@@ -21,6 +22,12 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       const propNum = parseFloat(propVal.replace(',', '.'))
       if (localNum !== propNum && !(isNaN(localNum) && isNaN(propNum))) {
+        setLocalVal(propVal)
+      }
+    } else if (type === 'currency') {
+      const propVal = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : ''
+      const localNum = parseFloat(localVal?.toString().replace(',', '.'))
+      if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
         setLocalVal(propVal)
       }
     } else {
@@ -96,6 +103,8 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
       // Formata normalmente no blur
       if (type === 'percent') {
         setLocalVal(value ? (value * 100).toFixed(2).replace('.', ',') : '')
+      } else if (type === 'currency') {
+        setLocalVal((value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : '')
       } else {
         setLocalVal(value !== null && value !== undefined ? value.toString().replace('.', ',') : '')
       }
@@ -292,7 +301,7 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
             type={type} 
             value={value} 
             onChange={(val) => handleCellChange(rowIndex, col, val)} 
-            placeholder={type === 'percent' ? '0,00' : '0'} 
+            placeholder={(type === 'percent' || type === 'currency') ? '0,00' : '0'} 
             style={{ textAlign: type === 'currency' || type === 'quantity' || type === 'percent' ? 'right' : 'left' }}
             error={cellError}
             rowIndex={rowIndex}
