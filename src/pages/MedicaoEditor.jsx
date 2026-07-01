@@ -18,7 +18,7 @@ import itensContrato from '../data/itensContrato'
 export default function MedicaoEditor() {
   const { contratoId, medicaoId } = useParams()
   const navigate = useNavigate()
-  const isNew = medicaoId === 'novo'
+  const isNew = medicaoId === undefined || medicaoId === 'novo'
 
   const contrato = useMemo(() => getContrato(contratoId), [contratoId])
   
