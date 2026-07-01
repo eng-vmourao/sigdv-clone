@@ -320,6 +320,7 @@ export default function MedicaoEditor() {
                           field="qtdMedidaPeriodo"
                           onChange={(val) => handleQtdChange(idx, val)}
                           rowIndex={idx}
+                          placeholder="0,0000"
                           style={{ textAlign: 'right' }}
                         />
                       </td>
