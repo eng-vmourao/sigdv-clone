@@ -10,6 +10,7 @@ import BackButton from '../components/UI/BackButton'
 import ContratoInfoBar from '../components/Contrato/ContratoInfoBar'
 import LeiAplicavelSelect from '../components/Contrato/LeiAplicavelSelect'
 import ConfirmDialog from '../components/UI/ConfirmDialog'
+import NewItemModal from '../components/TAM/NewItemModal'
 import { formatCurrency, formatDate, formatQuantity } from '../utils/formatters'
 import { TAM_TYPES } from '../config/tamTypes'
 
@@ -18,12 +19,36 @@ export default function ContratoDetalhe() {
   const navigate = useNavigate()
   const [refreshKey, setRefreshKey] = useState(0)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [showNewItemModal, setShowNewItemModal] = useState(false)
 
   const contrato = useMemo(() => getContrato(id), [id])
   const tamsList = useMemo(() => listarTAMs(Number(id)), [id, refreshKey])
   const medicoesList = useMemo(() => listarMedicoes(Number(id)), [id, refreshKey])
   const resumo = useMemo(() => calcularResumoContrato(Number(id)), [id, refreshKey])
-  const itens = useMemo(() => itensContrato[Number(id)] || [], [id])
+  const itens = useMemo(() => itensContrato[Number(id)] || [], [id, refreshKey])
+
+  const handleAddItem = (novoItem) => {
+    const contratoIdNum = Number(id);
+    if (!itensContrato[contratoIdNum]) {
+      itensContrato[contratoIdNum] = [];
+    }
+    
+    // Verifica se item com o mesmo código já existe
+    if (itensContrato[contratoIdNum].some(i => i.codigoItem === novoItem.codigoItem)) {
+      alert(`Item com código ${novoItem.codigoItem} já existe neste contrato.`);
+      return;
+    }
+    
+    const maxId = itensContrato[contratoIdNum].reduce((max, i) => Math.max(max, i.id), 0);
+    itensContrato[contratoIdNum].push({
+      id: maxId + 1,
+      ...novoItem,
+      qtdVigente: Number(novoItem.qtdVigente) || 0,
+      precoUnitVigente: Number(novoItem.precoUnitVigente) || 0,
+    });
+    
+    setRefreshKey(k => k + 1);
+  }
 
   if (!contrato) {
     return <div className="app-content"><p>Contrato não encontrado.</p></div>
@@ -98,6 +123,11 @@ export default function ContratoDetalhe() {
 
         {/* ORÇAMENTO E CONTRATAÇÃO INICIAL */}
         <CollapsibleSection title="Orçamento e Contratação Inicial" defaultOpen={false}>
+          <div className="table-controls" style={{ marginBottom: 8 }}>
+            <button className="btn btn-outline btn-sm" onClick={() => setShowNewItemModal(true)}>
+              + Novo Item
+            </button>
+          </div>
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
@@ -365,6 +395,14 @@ export default function ContratoDetalhe() {
         onConfirm={() => handleDeleteMedicao(confirmDelete.id)}
         onCancel={() => setConfirmDelete(null)}
         confirmLabel="Excluir"
+      />
+
+      {/* Modal de novo item (SIGDV-10) */}
+      <NewItemModal
+        isOpen={showNewItemModal}
+        onClose={() => setShowNewItemModal(false)}
+        onAdd={handleAddItem}
+        tamTipo="PRORROGACAO"
       />
     </div>
   )

@@ -1,15 +1,43 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getContrato } from '../services/contratoService'
-import { getTAM, criarTAM, atualizarItensTAM, adicionarNovoItem, getProximoNumeroTAM } from '../services/tamService'
+import { getTAM, criarTAM, atualizarItensTAM, getProximoNumeroTAM } from '../services/tamService'
 import { getTAMConfig, TAM_TYPE_OPTIONS } from '../config/tamTypes'
 import ConfigurableTable from '../components/Table/ConfigurableTable'
 import ContratoInfoBar from '../components/Contrato/ContratoInfoBar'
-import BackButton from '../components/UI/BackButton'
 import CollapsibleSection from '../components/UI/CollapsibleSection'
-import NewItemModal from '../components/TAM/NewItemModal'
 import ConfirmDialog from '../components/UI/ConfirmDialog'
 import { formatDate } from '../utils/formatters'
+import itensContrato from '../data/itensContrato'
+
+// Helper para inicializar itens de nova TAM zerados
+function getItensZerados(contratoItens, tipo) {
+  return contratoItens.map(item => {
+    const base = {
+      codigoItem: item.codigoItem,
+      descricao: item.descricao,
+      qtdVigente: item.qtdVigente,
+      precoUnitVigente: item.precoUnitVigente,
+    };
+    switch (tipo) {
+      case 'PRORROGACAO':
+      case 'PRORROGACAO_EXCEPCIONALIDADE':
+        return { ...base, variacaoQtd: 0, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0, reajUnitValor: 0 };
+      case 'ACRESCIMO':
+        return { ...base, qtdAcrescida: 0 };
+      case 'SUPRESSAO':
+        return { ...base, qtdSuprimida: 0 };
+      case 'ANULACAO':
+        return { ...base, anularItem: 'Não' };
+      case 'REAJUSTE':
+        return { ...base, reajUnitPerc: 0, reajUnitValor: 0 };
+      case 'DESCONTO':
+        return { ...base, descUnitPerc: 0, descUnitValor: 0 };
+      default:
+        return base;
+    }
+  });
+}
 
 /**
  * Editor de TAM — usa ConfigurableTable baseado no tipo
@@ -28,7 +56,6 @@ export default function TAMEditor() {
   const [dataInicio, setDataInicio] = useState('')
   const [dataTermino, setDataTermino] = useState('')
   const [observacao, setObservacao] = useState('')
-  const [showNewItemModal, setShowNewItemModal] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
@@ -48,8 +75,9 @@ export default function TAMEditor() {
 
   // Estado dos itens
   const [itens, setItens] = useState(() => {
-    if (tamExistente?.itens) return [...tamExistente.itens]
-    return []
+    if (!isNew && tamExistente?.itens) return [...tamExistente.itens]
+    const contratoItens = itensContrato[Number(contratoId)] || []
+    return getItensZerados(contratoItens, 'PRORROGACAO')
   })
 
   // Próximo número (SIGDV-09)
@@ -64,9 +92,10 @@ export default function TAMEditor() {
   // Handler de alteração de tipo
   const handleTipoChange = (novoTipo) => {
     setTipo(novoTipo)
-    // Se é nova TAM, reinicializa itens zerados (SIGDV-06)
+    // Se é nova TAM, reinicializa itens zerados com a configuração do tipo de TAM correspondente
     if (isNew) {
-      setItens([])
+      const contratoItens = itensContrato[Number(contratoId)] || []
+      setItens(getItensZerados(contratoItens, novoTipo))
     }
     setHasChanges(true)
   }
@@ -80,37 +109,6 @@ export default function TAMEditor() {
     })
     setHasChanges(true)
   }, [])
-
-  // Handler de novo item (SIGDV-10)
-  const handleAddItem = useCallback((novoItem) => {
-    const baseItem = {
-      ...novoItem,
-      origemTAM: true,
-    }
-
-    // Adiciona campos zerados conforme tipo
-    switch (tipo) {
-      case 'PRORROGACAO':
-      case 'PRORROGACAO_EXCEPCIONALIDADE':
-        baseItem.variacaoQtd = 0
-        baseItem.descUnitPerc = 0
-        baseItem.descUnitValor = 0
-        baseItem.reajUnitPerc = 0
-        baseItem.reajUnitValor = 0
-        break
-      case 'ACRESCIMO':
-        baseItem.qtdAcrescida = 0
-        break
-      case 'SUPRESSAO':
-        baseItem.qtdSuprimida = 0
-        break
-      default:
-        break
-    }
-
-    setItens(prev => [...prev, baseItem])
-    setHasChanges(true)
-  }, [tipo])
 
   // Salvar
   const handleSave = () => {
@@ -232,7 +230,7 @@ export default function TAMEditor() {
               config={config}
               rows={itens}
               onRowChange={handleRowChange}
-              onAddItem={config.allowNewItem ? () => setShowNewItemModal(true) : null}
+              onAddItem={null}
             />
           ) : (
             <div className="alert alert-warning">
@@ -251,14 +249,6 @@ export default function TAMEditor() {
           </button>
         </div>
       </div>
-
-      {/* Modal de novo item (SIGDV-10) */}
-      <NewItemModal
-        isOpen={showNewItemModal}
-        onClose={() => setShowNewItemModal(false)}
-        onAdd={handleAddItem}
-        tamTipo={tipo}
-      />
 
       {/* Confirmação de saída sem salvar */}
       <ConfirmDialog

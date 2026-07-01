@@ -23,7 +23,42 @@ export function listarTAMs(contratoId) {
 export function getTAM(tamId) {
   for (const contratoId of Object.keys(tamsState)) {
     const tam = tamsState[contratoId].find(t => t.id === tamId);
-    if (tam) return tam;
+    if (tam) {
+      // Garantir que todos os itens do contrato estão na TAM (mesmo que não manipulados)
+      const contratoItens = itensContrato[contratoId] || [];
+      const tamItensMap = new Map(tam.itens.map(i => [i.codigoItem, i]));
+      
+      tam.itens = contratoItens.map(item => {
+        if (tamItensMap.has(item.codigoItem)) {
+          return tamItensMap.get(item.codigoItem);
+        }
+        // Retorna item zerado
+        const base = {
+          codigoItem: item.codigoItem,
+          descricao: item.descricao,
+          qtdVigente: item.qtdVigente,
+          precoUnitVigente: item.precoUnitVigente,
+        };
+        switch (tam.tipo) {
+          case 'PRORROGACAO':
+          case 'PRORROGACAO_EXCEPCIONALIDADE':
+            return { ...base, variacaoQtd: 0, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0, reajUnitValor: 0 };
+          case 'ACRESCIMO':
+            return { ...base, qtdAcrescida: 0 };
+          case 'SUPRESSAO':
+            return { ...base, qtdSuprimida: 0 };
+          case 'ANULACAO':
+            return { ...base, anularItem: 'Não' };
+          case 'REAJUSTE':
+            return { ...base, reajUnitPerc: 0, reajUnitValor: 0 };
+          case 'DESCONTO':
+            return { ...base, descUnitPerc: 0, descUnitValor: 0 };
+          default:
+            return base;
+        }
+      });
+      return tam;
+    }
   }
   return null;
 }

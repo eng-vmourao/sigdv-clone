@@ -110,7 +110,7 @@ export const TAM_TYPES = {
     editable: ['variacaoQtd', 'descUnitPerc', 'descUnitValor', 'reajUnitPerc', 'reajUnitValor'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
     calculated: ['descUnitTotal', 'reajUnitTotal', 'qtdFinal', 'precoUnitFinal', 'valorFinal', 'valorTotalVigente'],
-    allowNewItem: true,
+    allowNewItem: false,
     calcRow: (row) => {
       const descUnitTotal = calcDescUnitTotal(row);
       const reajUnitTotal = calcReajUnitTotal(row);
@@ -142,7 +142,7 @@ export const TAM_TYPES = {
     editable: ['variacaoQtd', 'descUnitPerc', 'descUnitValor', 'reajUnitPerc', 'reajUnitValor'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
     calculated: ['descUnitTotal', 'reajUnitTotal', 'qtdFinal', 'precoUnitFinal', 'valorFinal', 'valorTotalVigente'],
-    allowNewItem: true,
+    allowNewItem: false,
     calcRow: (row) => {
       const descUnitTotal = calcDescUnitTotal(row);
       const reajUnitTotal = calcReajUnitTotal(row);
@@ -172,7 +172,7 @@ export const TAM_TYPES = {
     editable: ['qtdAcrescida'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
     calculated: ['qtdFinal', 'valorFinal', 'valorTotalVigente'],
-    allowNewItem: true,
+    allowNewItem: false,
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) + (row.qtdAcrescida || 0);
@@ -201,7 +201,7 @@ export const TAM_TYPES = {
     editable: ['qtdSuprimida'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
     calculated: ['qtdFinal', 'valorFinal', 'valorTotalVigente'],
-    allowNewItem: true,
+    allowNewItem: false,
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
       const qtdFinal = (row.qtdVigente || 0) - (row.qtdSuprimida || 0);
