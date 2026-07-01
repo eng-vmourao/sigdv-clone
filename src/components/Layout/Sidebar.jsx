@@ -41,11 +41,12 @@ const bottomItems = [
   { label: 'API', icon: '🔌', path: '/api' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isCollapsed }) {
   const [openMenus, setOpenMenus] = useState({ 'Contrato': true })
   const location = useLocation()
 
   const toggleMenu = (label) => {
+    if (isCollapsed) return // Don't toggle submenus when collapsed
     setOpenMenus(prev => ({ ...prev, [label]: !prev[label] }))
   }
 
@@ -55,7 +56,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">S</div>
         <span className="sidebar-logo-text">SIGDV</span>

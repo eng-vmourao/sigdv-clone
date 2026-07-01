@@ -1,7 +1,7 @@
-export default function Header() {
+export default function Header({ onToggleSidebar }) {
   return (
     <header className="header">
-      <button className="header-toggle" title="Menu">☰</button>
+      <button className="header-toggle" title="Menu" onClick={onToggleSidebar}>☰</button>
       <div className="header-search">
         <input type="text" placeholder="Pesquisar..." />
       </div>

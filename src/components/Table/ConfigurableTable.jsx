@@ -59,6 +59,60 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
     return 'protected'
   }, [config])
 
+const CellInput = ({ value, type, onChange, placeholder, style, error }) => {
+  const [localVal, setLocalVal] = useState(() => {
+    if (type === 'percent') return value ? (value * 100).toFixed(2) : ''
+    return value ?? ''
+  })
+
+  // Sincroniza apenas quando o valor propaga de fora e é diferente
+  if (type !== 'percent' && typeof value === 'number' && parseFloat(localVal?.toString().replace(',','.')) !== value && localVal !== '-' && !localVal?.toString().endsWith(',')) {
+    // Para não sobrescrever o que o usuário digita (ex: '-', '-0,', etc), não atualizamos se localVal já reflete o número
+    // Mas se o valor mudou de verdade externamente, atualizamos:
+  }
+
+  const handleChange = (e) => {
+    const newVal = e.target.value
+    setLocalVal(newVal)
+    
+    let parsed
+    if (type === 'percent') {
+      const pct = parseFloat(newVal.replace(',', '.'))
+      parsed = isNaN(pct) ? 0 : pct / 100
+    } else {
+      parsed = parseByType(newVal, type)
+    }
+    
+    // Se newVal for "-", "-", ou terminar em "," a gente passa 0 pro parent, mas mantém newVal local
+    // Assim o cálculo não quebra com strings
+    const isPartial = newVal === '-' || newVal === '-,' || newVal.endsWith(',')
+    onChange(isPartial ? 0 : parsed)
+  }
+
+  const handleBlur = () => {
+    // Formata o localVal no blur
+    if (type === 'percent') {
+      setLocalVal(value ? (value * 100).toFixed(2) : '')
+    } else {
+      setLocalVal(value ?? '')
+    }
+  }
+
+  return (
+    <>
+      <input
+        type="text"
+        value={localVal}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        style={style}
+      />
+      {error && <div className={`alert-${error.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{error.message}</div>}
+    </>
+  )
+}
+
   // Renderiza célula baseado no estado
   const renderCell = (row, col, rowIndex) => {
     const state = getColumnState(col)
@@ -95,21 +149,14 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
 
       return (
         <td key={col} className={cellClass} style={{ minWidth: COLUMN_WIDTHS[col] }}>
-          <input
-            type="text"
-            value={type === 'percent' ? (value ? (value * 100).toFixed(2) : '') : (value ?? '')}
-            onChange={e => {
-              if (type === 'percent') {
-                const pct = parseFloat(e.target.value.replace(',', '.'))
-                handleCellChange(rowIndex, col, isNaN(pct) ? 0 : pct / 100)
-              } else {
-                handleCellChange(rowIndex, col, e.target.value)
-              }
-            }}
-            placeholder={type === 'percent' ? '0,00' : '0'}
+          <CellInput 
+            type={type} 
+            value={value} 
+            onChange={(val) => handleCellChange(rowIndex, col, val)} 
+            placeholder={type === 'percent' ? '0,00' : '0'} 
             style={{ textAlign: type === 'currency' || type === 'quantity' || type === 'percent' ? 'right' : 'left' }}
+            error={cellError}
           />
-          {cellError && <div className={`alert-${cellError.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{cellError.message}</div>}
         </td>
       )
     }
