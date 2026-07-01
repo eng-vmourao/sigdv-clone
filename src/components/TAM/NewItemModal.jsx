@@ -24,7 +24,7 @@ export default function NewItemModal({ isOpen, onClose, onAdd, tamTipo }) {
     }
     onAdd({
       ...formData,
-      qtdVigente: parseFloat(formData.qtdVigente) || 0,
+      qtdVigente: parseFloat(String(formData.qtdVigente).replace(',', '.')) || 0,
       precoUnitVigente: parseFloat(String(formData.precoUnitVigente).replace(',', '.')) || 0,
       origemTAM: true,
     })

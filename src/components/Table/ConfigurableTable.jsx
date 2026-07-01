@@ -5,8 +5,8 @@ import { validateRow } from '../../utils/validators'
 
 const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
   const [localVal, setLocalVal] = useState(() => {
-    if (type === 'percent') return value ? (value * 100).toFixed(2) : ''
-    return value ?? ''
+    if (type === 'percent') return value ? (value * 100).toFixed(2).replace('.', ',') : ''
+    return value !== null && value !== undefined ? value.toString().replace('.', ',') : ''
   })
 
   // Sincroniza localVal com a prop value quando esta mudar externamente
@@ -17,7 +17,7 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     }
 
     if (type === 'percent') {
-      const propVal = value ? (value * 100).toFixed(2) : ''
+      const propVal = value ? (value * 100).toFixed(2).replace('.', ',') : ''
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       const propNum = parseFloat(propVal.replace(',', '.'))
       if (localNum !== propNum && !(isNaN(localNum) && isNaN(propNum))) {
@@ -26,21 +26,37 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     } else {
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
-        setLocalVal(value ?? '')
+        setLocalVal(value !== null && value !== undefined ? value.toString().replace('.', ',') : '')
       }
     }
   }, [value, type])
 
   const handleChange = (e) => {
-    const newVal = e.target.value
+    let newVal = e.target.value
+    
+    // Para desconto e reajuste, não permite sinal de negativo
+    const isDiscountOrReajuste = field?.startsWith('desc') || field?.startsWith('reaj')
+    if (isDiscountOrReajuste) {
+      newVal = newVal.replace('-', '')
+    }
+
     setLocalVal(newVal)
     
     let parsed
     if (type === 'percent') {
-      const pct = parseFloat(newVal.replace(',', '.'))
-      parsed = isNaN(pct) ? 0 : pct / 100
+      let pct = parseFloat(newVal.replace(',', '.'))
+      if (isNaN(pct)) pct = 0
+      if (pct > 100) {
+        pct = 100
+        setLocalVal('100')
+      }
+      parsed = pct / 100
     } else {
       parsed = parseByType(newVal, type)
+      // Adicionalmente garante que o valor parseado não é negativo para desconto e reajuste
+      if (isDiscountOrReajuste && parsed < 0) {
+        parsed = 0
+      }
     }
     
     // Se for apenas o símbolo "-" ou termina em ",", passamos 0 ou o valor anterior sem quebrar
@@ -57,9 +73,9 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
     } else {
       // Formata normalmente no blur
       if (type === 'percent') {
-        setLocalVal(value ? (value * 100).toFixed(2) : '')
+        setLocalVal(value ? (value * 100).toFixed(2).replace('.', ',') : '')
       } else {
-        setLocalVal(value ?? '')
+        setLocalVal(value !== null && value !== undefined ? value.toString().replace('.', ',') : '')
       }
     }
   }
