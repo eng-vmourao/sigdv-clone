@@ -26,6 +26,7 @@ export default function MedicaoEditor() {
   const [dataInicio, setDataInicio] = useState('')
   const [dataTermino, setDataTermino] = useState('')
   const [nrProtocolo, setNrProtocolo] = useState('')
+  const [periodo, setPeriodo] = useState('')
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
@@ -38,9 +39,30 @@ export default function MedicaoEditor() {
       setDataInicio(med.periodoInicio)
       setDataTermino(med.periodoTermino)
       setNrProtocolo(med.nrProtocolo || '')
+      setPeriodo(med.periodo || '')
     }
     return med
   }, [medicaoId, isNew])
+
+  // Cálculo automático do período quando a data de início da medição mudar (apenas em novas)
+  useEffect(() => {
+    if (isNew && dataInicio && contrato?.dataInicio) {
+      // Usar split para evitar problemas de timezone com T00:00:00
+      const [anoC, mesC, diaC] = contrato.dataInicio.split('-').map(Number)
+      const [anoM, mesM, diaM] = dataInicio.split('-').map(Number)
+
+      let diffYears = anoM - anoC
+      // Verifica se já fez aniversário no ano da medição
+      const isBeforeAnniversary = mesM < mesC || (mesM === mesC && diaM < diaC)
+      
+      if (isBeforeAnniversary) {
+        diffYears--
+      }
+      
+      const calcPeriodo = Math.max(1, diffYears + 1)
+      setPeriodo(calcPeriodo)
+    }
+  }, [dataInicio, contrato?.dataInicio, isNew])
 
   const resumo = useMemo(() => {
     if (!medicaoExistente) return null
@@ -116,6 +138,7 @@ export default function MedicaoEditor() {
         periodoInicio: dataInicio,
         periodoTermino: dataTermino,
         nrProtocolo: nrProtocolo,
+        periodo: Number(periodo) || 1,
         medicaoR$: itens.reduce((s, i) => s + (i.valorMedidoPeriodo || 0), 0)
       })
       atualizarItensMedicao(novaMedicao.id, itens)
@@ -176,6 +199,16 @@ export default function MedicaoEditor() {
                     className="form-control"
                     value={dataTermino}
                     onChange={e => { setDataTermino(e.target.value); setHasChanges(true) }}
+                    disabled={!isNew}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Período</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={periodo}
+                    onChange={e => { setPeriodo(e.target.value); setHasChanges(true) }}
                     disabled={!isNew}
                   />
                 </div>
