@@ -65,13 +65,22 @@ const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex,
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === 'ArrowDown') {
       e.preventDefault()
       const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${field}"]`)
       if (next) {
         next.focus()
         if (typeof next.select === 'function') {
           next.select()
+        }
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const prev = document.querySelector(`[data-row="${rowIndex - 1}"][data-field="${field}"]`)
+      if (prev) {
+        prev.focus()
+        if (typeof prev.select === 'function') {
+          prev.select()
         }
       }
     }
@@ -177,10 +186,14 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
               data-row={rowIndex}
               data-field={col}
               onKeyDown={e => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.key === 'ArrowDown') {
                   e.preventDefault()
                   const next = document.querySelector(`[data-row="${rowIndex + 1}"][data-field="${col}"]`)
                   if (next) next.focus()
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  const prev = document.querySelector(`[data-row="${rowIndex - 1}"][data-field="${col}"]`)
+                  if (prev) prev.focus()
                 }
               }}
             >
