@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getContrato, atualizarLeiAplicavel } from '../services/contratoService'
 import { listarTAMs } from '../services/tamService'
@@ -50,6 +50,31 @@ export default function ContratoDetalhe() {
     setRefreshKey(k => k + 1);
   }
 
+  // Restore and save scroll position
+  useEffect(() => {
+    const scrollKey = `scroll_contrato_${id}`
+    const savedScroll = sessionStorage.getItem(scrollKey)
+    if (savedScroll) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScroll, 10))
+      }, 50)
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem(scrollKey, window.scrollY.toString())
+    }
+
+    // Atraso pequeno para evitar salvar 0 antes da renderização completa
+    const timeoutId = setTimeout(() => {
+      window.addEventListener('scroll', handleScroll, { passive: true })
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [id])
+
   if (!contrato) {
     return <div className="app-content"><p>Contrato não encontrado.</p></div>
   }
@@ -72,7 +97,7 @@ export default function ContratoDetalhe() {
         <BackButton to="/contratos" label="Contratos" />
 
         {/* INFORMAÇÕES GERAIS */}
-        <CollapsibleSection title="Informações Gerais" defaultOpen={false}>
+        <CollapsibleSection title="Informações Gerais" defaultOpen={false} storageKey={`contrato_${id}_info`}>
           <div className="card">
             <div className="card-body">
               <div className="form-row">
@@ -122,7 +147,7 @@ export default function ContratoDetalhe() {
         </CollapsibleSection>
 
         {/* ORÇAMENTO E CONTRATAÇÃO INICIAL */}
-        <CollapsibleSection title="Orçamento e Contratação Inicial" defaultOpen={false}>
+        <CollapsibleSection title="Orçamento e Contratação Inicial" defaultOpen={false} storageKey={`contrato_${id}_orcamento`}>
           <div className="table-controls" style={{ marginBottom: 8 }}>
             <button className="btn btn-outline btn-sm" onClick={() => setShowNewItemModal(true)}>
               + Novo Item
@@ -165,12 +190,12 @@ export default function ContratoDetalhe() {
         </CollapsibleSection>
 
         {/* EQUIPE TÉCNICA */}
-        <CollapsibleSection title="Equipe Técnica" defaultOpen={false}>
+        <CollapsibleSection title="Equipe Técnica" defaultOpen={false} storageKey={`contrato_${id}_equipe`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados da equipe técnica do contrato.</p>
         </CollapsibleSection>
 
         {/* TAM's */}
-        <CollapsibleSection title="TAM's" defaultOpen={true}>
+        <CollapsibleSection title="TAM's" defaultOpen={true} storageKey={`contrato_${id}_tams`}>
           <div className="table-controls">
             <button className="btn btn-outline" onClick={() => navigate(`/contratos/${id}/tam/novo`)}>
               Novo
@@ -243,7 +268,7 @@ export default function ContratoDetalhe() {
         </CollapsibleSection>
 
         {/* MEDIÇÃO */}
-        <CollapsibleSection title="Medição" defaultOpen={false}>
+        <CollapsibleSection title="Medição" defaultOpen={false} storageKey={`contrato_${id}_medicao`}>
           <div className="table-controls">
             <button className="btn btn-outline" onClick={() => navigate(`/contratos/${id}/medicao/novo`)}>
               Nova Medição
@@ -339,12 +364,12 @@ export default function ContratoDetalhe() {
         </CollapsibleSection>
 
         {/* LIBERAÇÃO MEDIÇÃO */}
-        <CollapsibleSection title="Liberação Medição" defaultOpen={false}>
+        <CollapsibleSection title="Liberação Medição" defaultOpen={false} storageKey={`contrato_${id}_liberacao`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados de liberação de medição.</p>
         </CollapsibleSection>
 
         {/* VALORES VIGENTES */}
-        <CollapsibleSection title="Valores Vigentes" defaultOpen={false}>
+        <CollapsibleSection title="Valores Vigentes" defaultOpen={false} storageKey={`contrato_${id}_valores_vigentes`}>
           {resumo && (
             <div className="resumo-grid">
               <div className="resumo-card">
@@ -370,22 +395,22 @@ export default function ContratoDetalhe() {
         </CollapsibleSection>
 
         {/* CRONOGRAMA */}
-        <CollapsibleSection title="Cronograma" defaultOpen={false}>
+        <CollapsibleSection title="Cronograma" defaultOpen={false} storageKey={`contrato_${id}_cronograma`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados do cronograma.</p>
         </CollapsibleSection>
 
         {/* PAGAMENTO */}
-        <CollapsibleSection title="Pagamento" defaultOpen={false}>
+        <CollapsibleSection title="Pagamento" defaultOpen={false} storageKey={`contrato_${id}_pagamento`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados de pagamento.</p>
         </CollapsibleSection>
 
         {/* ATESTADO DE CAPACIDADE TÉCNICA */}
-        <CollapsibleSection title="Atestado de Capacidade Técnica" defaultOpen={false}>
+        <CollapsibleSection title="Atestado de Capacidade Técnica" defaultOpen={false} storageKey={`contrato_${id}_atestado`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados do atestado.</p>
         </CollapsibleSection>
 
         {/* ENCERRAMENTO */}
-        <CollapsibleSection title="Encerramento" defaultOpen={false}>
+        <CollapsibleSection title="Encerramento" defaultOpen={false} storageKey={`contrato_${id}_encerramento`}>
           <p style={{ color: 'var(--text-muted)', padding: 16 }}>Dados de encerramento.</p>
         </CollapsibleSection>
 
