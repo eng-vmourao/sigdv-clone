@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getContrato, atualizarLeiAplicavel } from '../services/contratoService'
+import { getContrato, atualizarLeiAplicavel, atualizarContrato } from '../services/contratoService'
 import { listarTAMs } from '../services/tamService'
 import { listarMedicoes, excluirMedicao } from '../services/medicaoService'
 import { calcularResumoContrato } from '../services/calculoService'
@@ -21,7 +21,38 @@ export default function ContratoDetalhe() {
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [showNewItemModal, setShowNewItemModal] = useState(false)
 
-  const contrato = useMemo(() => getContrato(id), [id])
+  const contrato = useMemo(() => getContrato(id), [id, refreshKey])
+
+  const [infoGerais, setInfoGerais] = useState({
+    dataAssinatura: '',
+    objetoContrato: '',
+    dataBaseContrato: '',
+    dataPrimeiraNotaServico: '',
+    coordenadoria: ''
+  })
+
+  // Sincronizar estado local quando o contrato carregar/atualizar
+  useEffect(() => {
+    if (contrato) {
+      setInfoGerais({
+        dataAssinatura: contrato.dataAssinatura || '',
+        objetoContrato: contrato.objetoContrato || contrato.objetoResumido || '',
+        dataBaseContrato: contrato.dataBaseContrato || '',
+        dataPrimeiraNotaServico: contrato.dataPrimeiraNotaServico || '',
+        coordenadoria: contrato.coordenadoria || ''
+      })
+    }
+  }, [contrato])
+
+  const handleInfoGeraisChange = (field, value) => {
+    setInfoGerais(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSaveInfoGerais = () => {
+    atualizarContrato(contrato.id, infoGerais)
+    alert('Informações gerais salvas com sucesso!')
+    setRefreshKey(k => k + 1)
+  }
   const tamsList = useMemo(() => listarTAMs(Number(id)), [id, refreshKey])
   const medicoesList = useMemo(() => listarMedicoes(Number(id)), [id, refreshKey])
   const resumo = useMemo(() => calcularResumoContrato(Number(id)), [id, refreshKey])
@@ -100,47 +131,84 @@ export default function ContratoDetalhe() {
         <CollapsibleSection title="Informações Gerais" defaultOpen={false} storageKey={`contrato_${id}_info`}>
           <div className="card">
             <div className="card-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Nº Contrato</label>
-                  <input className="form-control" value={contrato.numero} disabled />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Contratada</label>
-                  <input className="form-control" value={contrato.contratada} disabled />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Regional</label>
-                  <input className="form-control" value={contrato.regional} disabled />
+              {/* Row 1: Dados estáticos */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', fontSize: '0.85rem' }}>
+                <div><strong>Nº do Contrato:</strong> {contrato.numero}</div>
+                <div><strong>Edital:</strong> {contrato.edital || `TAC nº ${contrato.numero}`}</div>
+                <div><strong>Nº do Protocolo:</strong> {contrato.nrProtocolo || '0194/2025'}</div>
+                <div><strong>Lote:</strong> {contrato.lote || 'SEDE'}</div>
+                <div><strong>Regional:</strong> {contrato.regional}</div>
+                <div><strong>Natureza:</strong> {contrato.natureza || contrato.objetoResumido}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <strong>Data da Publicação do Extrato do Contrato:</strong> {contrato.dataPublicacaoExtrato || '11/02/2019'}
+                  <button className="btn btn-primary btn-sm" style={{ padding: '2px 8px', fontSize: '0.75rem' }}>Extratos</button>
                 </div>
               </div>
+
+              {/* Row 2: Assinatura e Anexos */}
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Objeto Resumido</label>
-                  <input className="form-control" value={contrato.objetoResumido} disabled />
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Data da Assinatura do Contrato</label>
+                  <input type="date" className="form-control" value={infoGerais.dataAssinatura} onChange={e => handleInfoGeraisChange('dataAssinatura', e.target.value)} />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Anexos do Contrato</label>
+                  <button className="btn btn-primary btn-block">Anexos</button>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Empresas do Contrato</label>
+                  <button className="btn btn-primary btn-block">Empresas</button>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Regionais</label>
+                  <button className="btn btn-primary btn-block">Regionais</button>
+                </div>
+              </div>
+
+              {/* Row 3: Objeto */}
+              <div className="form-group">
+                <label className="form-label">Objeto do Contrato</label>
+                <textarea 
+                  className="form-control" 
+                  rows="3" 
+                  value={infoGerais.objetoContrato} 
+                  onChange={e => handleInfoGeraisChange('objetoContrato', e.target.value)}
+                ></textarea>
+              </div>
+
+              {/* Row 4: Datas e Coordenadoria */}
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Data Base do Contrato</label>
+                  <input type="date" className="form-control" value={infoGerais.dataBaseContrato} onChange={e => handleInfoGeraisChange('dataBaseContrato', e.target.value)} />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Data 1ª Nota de Serviço</label>
+                  <input type="date" className="form-control" value={infoGerais.dataPrimeiraNotaServico} onChange={e => handleInfoGeraisChange('dataPrimeiraNotaServico', e.target.value)} />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Anexos Nota de Serviço</label>
+                  <button className="btn btn-primary btn-block">Anexos</button>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
                   <label className="form-label">Coordenadoria</label>
-                  <input className="form-control" value={contrato.coordenadoria || ''} disabled />
+                  <select className="form-control" value={infoGerais.coordenadoria} onChange={e => handleInfoGeraisChange('coordenadoria', e.target.value)}>
+                    <option value="">Selecione...</option>
+                    <option value="COV - Coordenadoria de Operação Viária">COV - Coordenadoria de Operação Viária</option>
+                    <option value="COT">COT</option>
+                    <option value="CRO">CRO</option>
+                    <option value="CET">CET</option>
+                  </select>
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ flex: 1 }}>
                   <label className="form-label">Lei Aplicável</label>
                   <LeiAplicavelSelect value={contrato.leiAplicavel} onChange={handleLeiChange} />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Data Início</label>
-                  <input className="form-control" value={formatDate(contrato.dataInicio)} disabled />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Data Término</label>
-                  <input className="form-control" value={formatDate(contrato.dataTermino)} disabled />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Status</label>
-                  <input className="form-control" value={contrato.status} disabled />
-                </div>
+
+              {/* Row 5: Salvar */}
+              <div style={{ marginTop: '16px' }}>
+                <button className="btn btn-primary" onClick={handleSaveInfoGerais} style={{ minWidth: '150px' }}>Salvar</button>
               </div>
             </div>
           </div>
