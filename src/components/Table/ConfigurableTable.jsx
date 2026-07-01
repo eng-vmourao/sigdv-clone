@@ -6,8 +6,8 @@ import { validateRow } from '../../utils/validators'
 export const CellInput = ({ value, type, onChange, placeholder, style, error, rowIndex, field }) => {
   const [localVal, setLocalVal] = useState(() => {
     if (type === 'percent') return value ? (value * 100).toFixed(2).replace('.', ',') : ''
-    if (type === 'currency') return (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : ''
-    return value !== null && value !== undefined ? value.toString().replace('.', ',') : ''
+    if (type === 'currency') return (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : ''
+    return (value !== null && value !== undefined && value !== 0) ? value.toString().replace('.', ',') : ''
   })
 
   // Sincroniza localVal com a prop value quando esta mudar externamente
@@ -25,15 +25,16 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
         setLocalVal(propVal)
       }
     } else if (type === 'currency') {
-      const propVal = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : ''
+      const propVal = (value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : ''
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
         setLocalVal(propVal)
       }
     } else {
+      const propVal = (value !== null && value !== undefined && value !== 0) ? value.toString().replace('.', ',') : ''
       const localNum = parseFloat(localVal?.toString().replace(',', '.'))
       if (localNum !== value && !(isNaN(localNum) && (value === null || value === undefined || value === ''))) {
-        setLocalVal(value !== null && value !== undefined ? value.toString().replace('.', ',') : '')
+        setLocalVal(propVal)
       }
     }
   }, [value, type])
@@ -96,7 +97,8 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
   const handleBlur = () => {
     // Se ao sair do campo, estiver como "-", "-0", "-0," ou vazio, removemos
     const cleaned = localVal?.toString().trim()
-    if (cleaned === '-' || cleaned === '-0' || cleaned === '-0,' || cleaned === '') {
+    const numVal = parseFloat(cleaned?.replace(',', '.'))
+    if (cleaned === '-' || cleaned === '-0' || cleaned === '-0,' || cleaned === '' || numVal === 0) {
       setLocalVal('')
       onChange(0)
     } else {
@@ -104,9 +106,9 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
       if (type === 'percent') {
         setLocalVal(value ? (value * 100).toFixed(2).replace('.', ',') : '')
       } else if (type === 'currency') {
-        setLocalVal((value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2).replace('.', ',') : '')
+        setLocalVal((value !== null && value !== undefined && value !== '' && value !== 0) ? Number(value).toFixed(2).replace('.', ',') : '')
       } else {
-        setLocalVal(value !== null && value !== undefined ? value.toString().replace('.', ',') : '')
+        setLocalVal((value !== null && value !== undefined && value !== 0) ? value.toString().replace('.', ',') : '')
       }
     }
   }
