@@ -54,57 +54,13 @@ const tams = {
     },
   ],
 
-  // Contrato 22.583-6 — 4 TAMs
+    // Contrato 22.583-6 — 5 TAMs Anuais de Prorrogação
   2: [
-    {
-      id: 2001, numero: 1, contratoId: 2, tipo: 'PRORROGACAO',
-      dataInicio: '2024-01-10', dataTermino: '2025-01-09',
-      inicioContrato: '2022-01-10', terminoContrato: '2025-01-09',
-      periodo: 2, observacao: 'Prorrogação por mais 12 meses conforme cláusula contratual.',
-      baseMedicao: 24,
-      itens: [
-        { codigoItem: '1.1', descricao: 'Tapa-buraco com CBUQ em via simples', qtdVigente: 3500, precoUnitVigente: 485.20, variacaoQtd: 500, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.08, reajUnitValor: 0 },
-        { codigoItem: '1.2', descricao: 'Tapa-buraco com CBUQ em via expressa', qtdVigente: 2200, precoUnitVigente: 612.35, variacaoQtd: 300, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.08, reajUnitValor: 0 },
-        { codigoItem: '1.3', descricao: 'Remendo profundo com CBUQ', qtdVigente: 15000, precoUnitVigente: 125.80, variacaoQtd: 2000, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.08, reajUnitValor: 0 },
-        { codigoItem: '1.7', descricao: 'Fornecimento e aplicação de CBUQ faixa C', qtdVigente: 6000, precoUnitVigente: 425.60, variacaoQtd: 1000, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.08, reajUnitValor: 0 },
-      ],
-    },
-    {
-      id: 2002, numero: 2, contratoId: 2, tipo: 'SUPRESSAO',
-      dataInicio: '2023-06-01', dataTermino: '2024-01-09',
-      inicioContrato: '2022-01-10', terminoContrato: '2025-01-09',
-      periodo: 1, observacao: 'Supressão de itens de sinalização conforme redefinição de escopo.',
-      baseMedicao: 17,
-      itens: [
-        { codigoItem: '1.11', descricao: 'Sinalização horizontal com termoplástico', qtdVigente: 35000, precoUnitVigente: 45.80, qtdSuprimida: 10000 },
-        { codigoItem: '1.12', descricao: 'Equipe de sinalização de emergência (diurna)', qtdVigente: 480, precoUnitVigente: 1250.00, qtdSuprimida: 120 },
-      ],
-    },
-    {
-      id: 2003, numero: 3, contratoId: 2, tipo: 'REAJUSTE',
-      dataInicio: '2023-01-10', dataTermino: '2024-01-09',
-      inicioContrato: '2022-01-10', terminoContrato: '2025-01-09',
-      periodo: 1, observacao: 'Reajuste anual pelo IPCA acumulado de 6,2%.',
-      baseMedicao: 12,
-      itens: [
-        { codigoItem: '1.1', descricao: 'Tapa-buraco com CBUQ em via simples', qtdVigente: 3500, precoUnitVigente: 485.20, reajUnitPerc: 0.062, reajUnitValor: 0 },
-        { codigoItem: '1.2', descricao: 'Tapa-buraco com CBUQ em via expressa', qtdVigente: 2200, precoUnitVigente: 612.35, reajUnitPerc: 0.062, reajUnitValor: 0 },
-        { codigoItem: '1.3', descricao: 'Remendo profundo com CBUQ', qtdVigente: 15000, precoUnitVigente: 125.80, reajUnitPerc: 0.062, reajUnitValor: 0 },
-        { codigoItem: '1.4', descricao: 'Fresagem de pavimento asfáltico', qtdVigente: 4500, precoUnitVigente: 78.45, reajUnitPerc: 0.062, reajUnitValor: 0 },
-        { codigoItem: '1.7', descricao: 'Fornecimento e aplicação de CBUQ faixa C', qtdVigente: 6000, precoUnitVigente: 425.60, reajUnitPerc: 0.062, reajUnitValor: 0 },
-      ],
-    },
-    {
-      id: 2004, numero: 4, contratoId: 2, tipo: 'ANULACAO',
-      dataInicio: '2024-06-01', dataTermino: '2025-01-09',
-      inicioContrato: '2022-01-10', terminoContrato: '2025-01-09',
-      periodo: 2, observacao: 'Anulação de itens de microrrevestimento por encerramento antecipado.',
-      baseMedicao: 28,
-      itens: [
-        { codigoItem: '1.8', descricao: 'Fornecimento e aplicação de microrrevestimento', qtdVigente: 120000, precoUnitVigente: 18.90, anularItem: 'Sim' },
-        { codigoItem: '1.9', descricao: 'Limpeza e desobstrução de sarjetas', qtdVigente: 25000, precoUnitVigente: 8.50, anularItem: 'Não' },
-      ],
-    },
+    { id: 2001, numero: 1, contratoId: 2, tipo: 'PRORROGACAO', dataInicio: '2023-01-16', dataTermino: '2024-01-15', inicioContrato: '2022-01-16', terminoContrato: '2024-01-15', periodo: 2, observacao: 'Prorrogação anual 1', medicaoInicio: 13, itens: [] },
+    { id: 2002, numero: 2, contratoId: 2, tipo: 'PRORROGACAO', dataInicio: '2024-01-16', dataTermino: '2025-01-15', inicioContrato: '2022-01-16', terminoContrato: '2025-01-15', periodo: 3, observacao: 'Prorrogação anual 2', medicaoInicio: 25, itens: [] },
+    { id: 2003, numero: 3, contratoId: 2, tipo: 'PRORROGACAO', dataInicio: '2025-01-16', dataTermino: '2026-01-15', inicioContrato: '2022-01-16', terminoContrato: '2026-01-15', periodo: 4, observacao: 'Prorrogação anual 3', medicaoInicio: 37, itens: [] },
+    { id: 2004, numero: 4, contratoId: 2, tipo: 'PRORROGACAO', dataInicio: '2026-01-16', dataTermino: '2027-01-15', inicioContrato: '2022-01-16', terminoContrato: '2027-01-15', periodo: 5, observacao: 'Prorrogação anual 4', medicaoInicio: 49, itens: [] },
+    { id: 2005, numero: 5, contratoId: 2, tipo: 'PRORROGACAO', dataInicio: '2027-01-16', dataTermino: '2028-06-15', inicioContrato: '2022-01-16', terminoContrato: '2028-06-15', periodo: 6, observacao: 'Prorrogação anual 5', medicaoInicio: 61, itens: [] },
   ],
 
   // Contrato 21.100-3 — 2 TAMs
@@ -136,21 +92,14 @@ const tams = {
     },
   ],
 
-  // Contrato 20.937-5 — 1 TAM (Prorrogação por Excepcionalidade)
+    // Contrato 20.937-5 — 6 TAMs Anuais
   4: [
-    {
-      id: 4001, numero: 1, contratoId: 4, tipo: 'PRORROGACAO_EXCEPCIONALIDADE',
-      dataInicio: '2022-09-01', dataTermino: '2023-08-31',
-      inicioContrato: '2020-09-01', terminoContrato: '2023-08-31',
-      periodo: 2, observacao: 'Prorrogação por excepcionalidade - emergência climática.',
-      baseMedicao: 24,
-      itens: [
-        { codigoItem: '1.1', descricao: 'Roçada mecanizada com trator', qtdVigente: 2400, precoUnitVigente: 285.00, variacaoQtd: 600, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.045, reajUnitValor: 0 },
-        { codigoItem: '1.4', descricao: 'Limpeza de bueiros e galerias', qtdVigente: 1200, precoUnitVigente: 180.00, variacaoQtd: 400, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.045, reajUnitValor: 0 },
-        { codigoItem: '1.7', descricao: 'Remoção de árvore caída com guindaste', qtdVigente: 80, precoUnitVigente: 2800.00, variacaoQtd: 40, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.045, reajUnitValor: 0 },
-        { codigoItem: '1.12', descricao: 'Equipe de emergência 24h (plantão)', qtdVigente: 24, precoUnitVigente: 85000.00, variacaoQtd: 12, descUnitPerc: 0, descUnitValor: 0, reajUnitPerc: 0.045, reajUnitValor: 0 },
-      ],
-    },
+    { id: 4001, numero: 1, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2020-03-16', dataTermino: '2021-03-15', inicioContrato: '2019-03-16', terminoContrato: '2021-03-15', periodo: 2, observacao: 'Prorrogação anual 1', medicaoInicio: 13, itens: [] },
+    { id: 4002, numero: 2, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2021-03-16', dataTermino: '2022-03-15', inicioContrato: '2019-03-16', terminoContrato: '2022-03-15', periodo: 3, observacao: 'Prorrogação anual 2', medicaoInicio: 25, itens: [] },
+    { id: 4003, numero: 3, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2022-03-16', dataTermino: '2023-03-15', inicioContrato: '2019-03-16', terminoContrato: '2023-03-15', periodo: 4, observacao: 'Prorrogação anual 3', medicaoInicio: 37, itens: [] },
+    { id: 4004, numero: 4, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2023-03-16', dataTermino: '2024-03-15', inicioContrato: '2019-03-16', terminoContrato: '2024-03-15', periodo: 5, observacao: 'Prorrogação anual 4', medicaoInicio: 49, itens: [] },
+    { id: 4005, numero: 5, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2024-03-16', dataTermino: '2025-03-15', inicioContrato: '2019-03-16', terminoContrato: '2025-03-15', periodo: 6, observacao: 'Prorrogação anual 5', medicaoInicio: 61, itens: [] },
+    { id: 4006, numero: 6, contratoId: 4, tipo: 'PRORROGACAO', dataInicio: '2025-03-16', dataTermino: '2026-03-15', inicioContrato: '2019-03-16', terminoContrato: '2026-03-15', periodo: 7, observacao: 'Prorrogação anual 6', medicaoInicio: 73, itens: [] },
   ],
 
   // Contrato 23.001-1 — 5 TAMs (todos os tipos)

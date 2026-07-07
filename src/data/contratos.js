@@ -20,7 +20,7 @@ const contratos = [
   {
     id: 2, numero: '22.583-6', contratada: 'Beta Engenharia e Serviços Ltda',
     regional: 'DR-05 - Campinas', objetoResumido: 'Manutenção Viária Preventiva',
-    leiAplicavel: '14133_2021', dataInicio: '2022-01-10', dataTermino: '2024-01-09',
+    leiAplicavel: '14133_2021', dataInicio: '2022-01-16', dataTermino: '2028-06-15',
     valorInicial: 8750420.00, ajusteCentavos: -0.04,
     coordenadoria: 'CRO', status: 'Ativo',
   },
@@ -34,7 +34,7 @@ const contratos = [
   {
     id: 4, numero: '20.937-5', contratada: 'Delta Serviços de Conservação Rodoviária',
     regional: 'DR-01 - Capital', objetoResumido: 'Conservação Rodoviária Emergencial',
-    leiAplicavel: 'NENHUM', dataInicio: '2020-09-01', dataTermino: '2022-08-31',
+    leiAplicavel: 'NENHUM', dataInicio: '2019-03-16', dataTermino: '2026-03-15',
     valorInicial: 15320000.00, ajusteCentavos: 0.56,
     coordenadoria: 'CRO', status: 'Ativo',
   },
