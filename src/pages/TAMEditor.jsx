@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getContrato } from '../services/contratoService'
-import { getTAM, criarTAM, atualizarItensTAM, getProximoNumeroTAM } from '../services/tamService'
+import { getTAM, criarTAM, atualizarTAM, atualizarItensTAM, getProximoNumeroTAM } from '../services/tamService'
 import { getTAMConfig, TAM_TYPE_OPTIONS } from '../config/tamTypes'
 import ConfigurableTable from '../components/Table/ConfigurableTable'
 import ContratoInfoBar from '../components/Contrato/ContratoInfoBar'
@@ -80,7 +80,7 @@ export default function TAMEditor() {
     const tam = getTAM(Number(tamId))
     if (tam) {
       setTipo(tam.tipo)
-      setMedicaoInicio(tam.medicaoInicio || tam.baseMedicao || '')
+      setMedicaoInicio(String(tam.medicaoInicio || tam.baseMedicao || ''))
       setDataInicio(tam.dataInicio || '')
       setInicioContrato(tam.inicioContrato || '')
       setTerminoContrato(tam.terminoContrato || '')
@@ -206,7 +206,15 @@ export default function TAMEditor() {
       setSaveMessage('TAM criada com sucesso!')
       setTimeout(() => navigate(`/contratos/${contratoId}`), 1000)
     } else {
-      atualizarItensTAM(Number(tamId), itens)
+      atualizarTAM(Number(tamId), {
+        tipo,
+        medicaoInicio,
+        dataInicio,
+        inicioContrato: tipo === 'PRORROGACAO' ? inicioContrato : undefined,
+        terminoContrato: tipo === 'PRORROGACAO' ? terminoContrato : undefined,
+        observacao,
+        itens
+      })
       setHasChanges(false)
       setSaveMessage('Alterações salvas com sucesso!')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -258,7 +266,6 @@ export default function TAMEditor() {
                     className="form-control"
                     value={tipo}
                     onChange={e => handleTipoChange(e.target.value)}
-                    disabled={!isNew}
                   >
                     {TAM_TYPE_OPTIONS.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -277,7 +284,6 @@ export default function TAMEditor() {
                     className="form-control"
                     value={medicaoInicio}
                     onChange={e => handleMedicaoChange(e.target.value)}
-                    disabled={!isNew}
                   >
                     <option value="">Selecione...</option>
                     {medicoesContrato.map(m => (
@@ -299,11 +305,11 @@ export default function TAMEditor() {
                   <>
                     <div className="form-group">
                       <label className="form-label">Início (Contrato)</label>
-                      <input type="date" className="form-control" value={inicioContrato} onChange={e => { setInicioContrato(e.target.value); setHasChanges(true) }} disabled={!isNew} />
+                      <input type="date" className="form-control" value={inicioContrato} onChange={e => { setInicioContrato(e.target.value); setHasChanges(true) }} />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Término (Contrato)</label>
-                      <input type="date" className="form-control" value={terminoContrato} onChange={e => { setTerminoContrato(e.target.value); setHasChanges(true) }} disabled={!isNew} />
+                      <input type="date" className="form-control" value={terminoContrato} onChange={e => { setTerminoContrato(e.target.value); setHasChanges(true) }} />
                     </div>
                   </>
                 )}
@@ -327,11 +333,11 @@ export default function TAMEditor() {
             <div style={{ padding: '0 16px 16px', display: 'flex', gap: 16, alignItems: 'center' }}>
               <strong>Modo de Anulação:</strong>
               <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input type="radio" name="modoAnulacao" value="medicao" checked={modoAnulacao === 'medicao'} onChange={() => { setModoAnulacao('medicao'); setHasChanges(true) }} disabled={!isNew} />
+                <input type="radio" name="modoAnulacao" value="medicao" checked={modoAnulacao === 'medicao'} onChange={() => { setModoAnulacao('medicao'); setHasChanges(true) }} />
                 Por Medição
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input type="radio" name="modoAnulacao" value="periodo" checked={modoAnulacao === 'periodo'} onChange={() => { setModoAnulacao('periodo'); setHasChanges(true) }} disabled={!isNew} />
+                <input type="radio" name="modoAnulacao" value="periodo" checked={modoAnulacao === 'periodo'} onChange={() => { setModoAnulacao('periodo'); setHasChanges(true) }} />
                 Por Período
               </label>
             </div>

@@ -137,7 +137,28 @@ export function criarTAM(contratoId, tipo, medicaoInicio, dataInicio, observacao
 }
 
 /**
+ * Atualiza TAM (cabeçalho e itens)
+ */
+export function atualizarTAM(tamId, dados) {
+  for (const contratoId of Object.keys(tamsState)) {
+    const tam = tamsState[contratoId].find(t => t.id === tamId);
+    if (tam) {
+      if (dados.tipo !== undefined) tam.tipo = dados.tipo;
+      if (dados.medicaoInicio !== undefined) tam.medicaoInicio = dados.medicaoInicio;
+      if (dados.dataInicio !== undefined) tam.dataInicio = dados.dataInicio;
+      if (dados.inicioContrato !== undefined) tam.inicioContrato = dados.inicioContrato;
+      if (dados.terminoContrato !== undefined) tam.terminoContrato = dados.terminoContrato;
+      if (dados.observacao !== undefined) tam.observacao = dados.observacao;
+      if (dados.itens !== undefined) tam.itens = dados.itens;
+      return tam;
+    }
+  }
+  return null;
+}
+
+/**
  * Atualiza itens de uma TAM
+
  */
 export function atualizarItensTAM(tamId, itensAtualizados) {
   for (const contratoId of Object.keys(tamsState)) {
