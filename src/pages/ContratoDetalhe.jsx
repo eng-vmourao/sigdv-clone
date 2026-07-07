@@ -136,6 +136,58 @@ export default function ContratoDetalhe() {
   const resumo = useMemo(() => calcularResumoContrato(Number(id)), [id, refreshKey])
   const itens = useMemo(() => itensContrato[Number(id)] || [], [id, refreshKey])
 
+  const [pagamentos, setPagamentos] = useState({});
+
+  const togglePagamento = (medicaoId) => {
+    setPagamentos(prev => {
+      const current = prev[medicaoId] || 'neutro';
+      let next = 'neutro';
+      if (current === 'neutro') next = 'aprovado';
+      else if (current === 'aprovado') next = 'reprovado';
+      else next = 'neutro';
+      return { ...prev, [medicaoId]: next };
+    });
+  };
+
+  const getPagamentoIcon = (status) => {
+    if (status === 'aprovado') return '✅';
+    if (status === 'reprovado') return '❌';
+    return '⬜';
+  };
+
+  const historicoAcumulado = useMemo(() => {
+    let accMedicao = 0;
+    let accReajuste = 0;
+    let accDesconto = 0;
+    
+    const sortedMedicoes = [...medicoesList].sort((a, b) => a.numero - b.numero);
+    const historico = [];
+    
+    for (const med of sortedMedicoes) {
+      accMedicao += (med.medicaoR$ || 0);
+      accReajuste += (med.reajusteR$ || 0);
+      accDesconto += (med.descontoR$ || 0);
+      
+      const totalGeral = accMedicao + accReajuste - accDesconto;
+      const saldo = resumo ? (resumo.valorTotalContratado - totalGeral) : 0;
+      const percentual = resumo && resumo.valorTotalContratado > 0 ? (totalGeral / resumo.valorTotalContratado) * 100 : 0;
+      
+      historico.unshift({
+        id: med.id,
+        periodo: med.numero,
+        percentual,
+        medicao: accMedicao,
+        reajuste: accReajuste,
+        medicaoMaisReajuste: accMedicao + accReajuste,
+        descontos: accDesconto,
+        totalGeral,
+        valorContratado: resumo?.valorTotalContratado || 0,
+        saldo
+      });
+    }
+    return historico;
+  }, [medicoesList, resumo]);
+
   const handleAddItem = (novoItem) => {
     const contratoIdNum = Number(id);
     if (!itensContrato[contratoIdNum]) {
@@ -512,33 +564,92 @@ export default function ContratoDetalhe() {
             </div>
           </div>
 
-          {/* Resumo Geral */}
+          {/* Resumo Geral - Medição */}
           {resumo && (
-            <div style={{ marginBottom: 16 }}>
-              <h4 style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: 8 }}>Resumo Geral - Contrato</h4>
-              <div className="resumo-grid">
-                <div className="resumo-card">
-                  <div className="resumo-card-label">Medição Atual</div>
-                  <div className="resumo-card-value">{resumo.totalMedicoes}</div>
-                </div>
-                <div className="resumo-card">
-                  <div className="resumo-card-label">% Executado</div>
-                  <div className="resumo-card-value">{resumo.percentualExecutado.toFixed(2)}%</div>
-                </div>
-                <div className="resumo-card">
-                  <div className="resumo-card-label">Total Executado (R$)</div>
-                  <div className="resumo-card-value">{formatCurrency(resumo.totalExecutado)}</div>
-                </div>
-                <div className="resumo-card">
-                  <div className="resumo-card-label">Valor Total Contratado</div>
-                  <div className="resumo-card-value">{formatCurrency(resumo.valorTotalContratado)}</div>
-                </div>
-                <div className="resumo-card">
-                  <div className="resumo-card-label">Saldo Contrato (R$)</div>
-                  <div className={`resumo-card-value ${resumo.saldoContrato >= 0 ? 'positive' : 'negative'}`}>
-                    {formatCurrency(resumo.saldoContrato)}
-                  </div>
-                </div>
+            <div style={{ marginBottom: 24 }}>
+              <h4 style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: 8, textTransform: 'uppercase' }}>Resumo Geral - Medição</h4>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th colSpan="9" style={{ textAlign: 'center', backgroundColor: '#f9f9f9', borderBottom: '1px solid #ddd' }}>Valores Acumulados</th>
+                    </tr>
+                    <tr>
+                      <th style={{ textAlign: 'center' }}>Medição Atual</th>
+                      <th style={{ textAlign: 'center' }}>% Executado</th>
+                      <th style={{ textAlign: 'right' }}>Medição (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Reajuste (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Medição + Reajuste (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Descontos (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Total Geral<br/>(Medição + Reajustes - Descontos) (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Valor Total Contratado (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Saldo Contrato (R$)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ textAlign: 'center' }}>{resumo.totalMedicoes}</td>
+                      <td style={{ textAlign: 'center' }}>{resumo.percentualExecutado.toFixed(2)}%</td>
+                      <td className="cell-currency">{formatCurrency(resumo.totalMedicao)}</td>
+                      <td className="cell-currency">{formatCurrency(resumo.totalReajuste)}</td>
+                      <td className="cell-currency">{formatCurrency(resumo.totalMedicao + resumo.totalReajuste)}</td>
+                      <td className="cell-currency">{formatCurrency(resumo.totalDesconto)}</td>
+                      <td className="cell-currency"><strong>{formatCurrency(resumo.totalExecutado)}</strong></td>
+                      <td className="cell-currency">{formatCurrency(resumo.valorTotalContratado)}</td>
+                      <td className={`cell-currency ${resumo.saldoContrato >= 0 ? 'positive' : 'negative'}`}>
+                        {formatCurrency(resumo.saldoContrato)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="table-info" style={{ marginTop: 4 }}>
+                Mostrando de 1 até 1 de 1 registros
+              </div>
+            </div>
+          )}
+
+          {/* Resumo Geral - Contrato */}
+          {resumo && historicoAcumulado.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <h4 style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: 8, textTransform: 'uppercase' }}>Resumo Geral - Contrato</h4>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th colSpan="9" style={{ textAlign: 'center', backgroundColor: '#f9f9f9', borderBottom: '1px solid #ddd' }}>Valores Acumulados</th>
+                    </tr>
+                    <tr>
+                      <th style={{ textAlign: 'center' }}>Período</th>
+                      <th style={{ textAlign: 'center' }}>% Executado</th>
+                      <th style={{ textAlign: 'right' }}>Medição (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Reajuste (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Medição + Reajuste (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Descontos (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Total Geral<br/>(Medição + Reajustes - Descontos) (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Valor Total Contratado (R$)</th>
+                      <th style={{ textAlign: 'right' }}>Saldo Contrato (R$)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historicoAcumulado.map(hist => (
+                      <tr key={hist.id}>
+                        <td style={{ textAlign: 'center' }}>{hist.periodo}</td>
+                        <td style={{ textAlign: 'center' }}>{hist.percentual.toFixed(2)}%</td>
+                        <td className="cell-currency">{formatCurrency(hist.medicao)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.reajuste)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.medicaoMaisReajuste)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.descontos)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.totalGeral)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.valorContratado)}</td>
+                        <td className="cell-currency">{formatCurrency(hist.saldo)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="table-info" style={{ marginTop: 4 }}>
+                Mostrando de 1 até {historicoAcumulado.length} de {historicoAcumulado.length} registros
               </div>
             </div>
           )}
@@ -548,48 +659,70 @@ export default function ContratoDetalhe() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Medição</th>
-                  <th>Início</th>
-                  <th>Término</th>
-                  <th style={{ textAlign: 'right' }}>Medição (R$)</th>
-                  <th style={{ textAlign: 'right' }}>Reajuste (R$)</th>
-                  <th style={{ textAlign: 'right' }}>Desconto (R$)</th>
-                  <th>Protocolo</th>
-                  <th>Ações</th>
+                  <th colSpan="10" style={{ textAlign: 'center', backgroundColor: '#f9f9f9', borderBottom: '1px solid #ddd' }}>Período da Medição</th>
+                </tr>
+                <tr>
+                  <th style={{ textAlign: 'center' }}>Nº</th>
+                  <th style={{ textAlign: 'center' }}>Início</th>
+                  <th style={{ textAlign: 'center' }}>Término</th>
+                  <th style={{ textAlign: 'right' }}>Valor medido (R$)</th>
+                  <th style={{ textAlign: 'right' }}>Valor do Reajuste (R$)</th>
+                  <th style={{ textAlign: 'right' }}>Total de Descontos (R$)</th>
+                  <th style={{ textAlign: 'right' }}>Total Geral (R$)</th>
+                  <th style={{ textAlign: 'right' }}>Saldo (R$)</th>
+                  <th style={{ textAlign: 'center' }}>Pagamento</th>
+                  <th style={{ textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {medicoesList.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>
                       Nenhuma medição cadastrada.
                     </td>
                   </tr>
                 ) : (
-                  medicoesList.map(med => (
-                    <tr key={med.id}>
-                      <td><strong>{med.numero}</strong></td>
-                      <td>{formatDate(med.periodoInicio)}</td>
-                      <td>{formatDate(med.periodoTermino)}</td>
-                      <td className="cell-currency">{formatCurrency(med.medicaoR$)}</td>
-                      <td className="cell-currency">{formatCurrency(med.reajusteR$)}</td>
-                      <td className="cell-currency">{formatCurrency(med.descontoR$)}</td>
-                      <td>{med.nrProtocolo || '-'}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-sm btn-outline"
-                            onClick={() => navigate(`/contratos/${id}/medicao/${med.id}`)}>
-                            ✏️
+                  medicoesList.map(med => {
+                    const totalMed = (med.medicaoR$ || 0) + (med.reajusteR$ || 0) - (med.descontoR$ || 0);
+                    const hist = historicoAcumulado.find(h => h.id === med.id);
+                    const saldoForMed = hist ? hist.saldo : 0;
+                    
+                    return (
+                      <tr key={med.id}>
+                        <td style={{ textAlign: 'center' }}><strong>{med.numero}</strong></td>
+                        <td style={{ textAlign: 'center' }}>{formatDate(med.periodoInicio)}</td>
+                        <td style={{ textAlign: 'center' }}>{formatDate(med.periodoTermino)}</td>
+                        <td className="cell-currency">{formatCurrency(med.medicaoR$)}</td>
+                        <td className="cell-currency">{formatCurrency(med.reajusteR$)}</td>
+                        <td className="cell-currency">{formatCurrency(med.descontoR$)}</td>
+                        <td className="cell-currency"><strong>{formatCurrency(totalMed)}</strong></td>
+                        <td className="cell-currency">{formatCurrency(saldoForMed)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button 
+                            className="btn btn-sm btn-link" 
+                            style={{ padding: 0, fontSize: '1rem', textDecoration: 'none' }}
+                            onClick={() => togglePagamento(med.id)}
+                            title="Alternar Status de Pagamento"
+                          >
+                            {getPagamentoIcon(pagamentos[med.id] || 'neutro')}
                           </button>
-                          <button className="btn btn-sm btn-outline"
-                            onClick={() => setConfirmDelete(med)}
-                            title="Excluir">
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                            <button className="btn btn-sm btn-outline"
+                              onClick={() => navigate(`/contratos/${id}/medicao/${med.id}`)}>
+                              ✏️
+                            </button>
+                            <button className="btn btn-sm btn-outline"
+                              onClick={() => setConfirmDelete(med)}
+                              title="Excluir">
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

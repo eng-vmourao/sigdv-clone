@@ -29,10 +29,12 @@ export function calcularResumoContrato(contratoId) {
     return sum + (item.qtdVigente * item.precoUnitVigente);
   }, 0) + (contrato.ajusteCentavos || 0);
 
-  // Total executado = soma das medições (medicao + reajuste - desconto)
-  const totalExecutado = medicoesList.reduce((sum, med) => {
-    return sum + (med.medicaoR$ || 0) + (med.reajusteR$ || 0) - (med.descontoR$ || 0);
-  }, 0);
+  // Total executado e parcelas
+  const totalMedicao = medicoesList.reduce((sum, med) => sum + (med.medicaoR$ || 0), 0);
+  const totalReajuste = medicoesList.reduce((sum, med) => sum + (med.reajusteR$ || 0), 0);
+  const totalDesconto = medicoesList.reduce((sum, med) => sum + (med.descontoR$ || 0), 0);
+  
+  const totalExecutado = totalMedicao + totalReajuste - totalDesconto;
 
   // Saldo
   const saldoContrato = valorTotalContratado - totalExecutado;
@@ -46,6 +48,9 @@ export function calcularResumoContrato(contratoId) {
     contrato,
     valorTotalContratado,
     totalExecutado,
+    totalMedicao,
+    totalReajuste,
+    totalDesconto,
     saldoContrato,
     percentualExecutado,
     itensVigentes,
