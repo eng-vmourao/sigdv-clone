@@ -155,37 +155,50 @@ export default function ContratoDetalhe() {
     return '⬜';
   };
 
-  const historicoAcumulado = useMemo(() => {
-    let accMedicao = 0;
-    let accReajuste = 0;
-    let accDesconto = 0;
+  const historicoPorPeriodo = useMemo(() => {
+    if (!medicoesList || medicoesList.length === 0) return [];
     
-    const sortedMedicoes = [...medicoesList].sort((a, b) => a.numero - b.numero);
-    const historico = [];
-    
-    for (const med of sortedMedicoes) {
-      accMedicao += (med.medicaoR$ || 0);
-      accReajuste += (med.reajusteR$ || 0);
-      accDesconto += (med.descontoR$ || 0);
-      
-      const totalGeral = accMedicao + accReajuste - accDesconto;
-      const saldo = resumo ? (resumo.valorTotalContratado - totalGeral) : 0;
-      const percentual = resumo && resumo.valorTotalContratado > 0 ? (totalGeral / resumo.valorTotalContratado) * 100 : 0;
-      
-      historico.unshift({
-        id: med.id,
-        periodo: med.numero,
-        percentual,
-        medicao: accMedicao,
-        reajuste: accReajuste,
-        medicaoMaisReajuste: accMedicao + accReajuste,
-        descontos: accDesconto,
-        totalGeral,
-        valorContratado: resumo?.valorTotalContratado || 0,
-        saldo
-      });
+    const grupos = {};
+    for (const med of medicoesList) {
+      const p = med.periodo || 1;
+      if (!grupos[p]) {
+        grupos[p] = { periodo: p, medicao: 0, reajuste: 0, descontos: 0 };
+      }
+      grupos[p].medicao += (med.medicaoR$ || 0);
+      grupos[p].reajuste += (med.reajusteR$ || 0);
+      grupos[p].descontos += (med.descontoR$ || 0);
     }
-    return historico;
+    
+    return Object.values(grupos)
+      .sort((a, b) => b.periodo - a.periodo)
+      .map(g => {
+        const totalGeral = g.medicao + g.reajuste - g.descontos;
+        const valorContratado = resumo?.valorTotalContratado || 0;
+        const saldo = valorContratado - totalGeral;
+        const percentual = valorContratado > 0 ? (totalGeral / valorContratado) * 100 : 0;
+        
+        return {
+          id: `periodo_${g.periodo}`,
+          ...g,
+          medicaoMaisReajuste: g.medicao + g.reajuste,
+          totalGeral,
+          valorContratado,
+          saldo,
+          percentual
+        };
+      });
+  }, [medicoesList, resumo]);
+
+  const saldoPorMedicao = useMemo(() => {
+    let accGeral = 0;
+    const sorted = [...medicoesList].sort((a, b) => a.numero - b.numero);
+    const saldos = {};
+    for (const med of sorted) {
+      const total = (med.medicaoR$ || 0) + (med.reajusteR$ || 0) - (med.descontoR$ || 0);
+      accGeral += total;
+      saldos[med.id] = resumo ? (resumo.valorTotalContratado - accGeral) : 0;
+    }
+    return saldos;
   }, [medicoesList, resumo]);
 
   const handleAddItem = (novoItem) => {
@@ -366,7 +379,7 @@ export default function ContratoDetalhe() {
               </div>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center' }}>
-                  Duração do contrato (Período)
+                  Duração do contrato
                   <button 
                     type="button" 
                     className="btn btn-sm btn-link" 
@@ -610,7 +623,7 @@ export default function ContratoDetalhe() {
           )}
 
           {/* Resumo Geral - Contrato */}
-          {resumo && historicoAcumulado.length > 0 && (
+          {resumo && historicoPorPeriodo.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <h4 style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: 8, textTransform: 'uppercase' }}>Resumo Geral - Contrato</h4>
               <div className="table-wrapper">
@@ -632,7 +645,7 @@ export default function ContratoDetalhe() {
                     </tr>
                   </thead>
                   <tbody>
-                    {historicoAcumulado.map(hist => (
+                    {historicoPorPeriodo.map(hist => (
                       <tr key={hist.id}>
                         <td style={{ textAlign: 'center' }}>{hist.periodo}</td>
                         <td style={{ textAlign: 'center' }}>{hist.percentual.toFixed(2)}%</td>
@@ -649,7 +662,7 @@ export default function ContratoDetalhe() {
                 </table>
               </div>
               <div className="table-info" style={{ marginTop: 4 }}>
-                Mostrando de 1 até {historicoAcumulado.length} de {historicoAcumulado.length} registros
+                Mostrando de 1 até {historicoPorPeriodo.length} de {historicoPorPeriodo.length} registros
               </div>
             </div>
           )}
@@ -684,8 +697,7 @@ export default function ContratoDetalhe() {
                 ) : (
                   medicoesList.map(med => {
                     const totalMed = (med.medicaoR$ || 0) + (med.reajusteR$ || 0) - (med.descontoR$ || 0);
-                    const hist = historicoAcumulado.find(h => h.id === med.id);
-                    const saldoForMed = hist ? hist.saldo : 0;
+                    const saldoForMed = saldoPorMedicao[med.id] || 0;
                     
                     return (
                       <tr key={med.id}>
