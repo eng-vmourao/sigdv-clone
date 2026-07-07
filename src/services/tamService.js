@@ -81,7 +81,7 @@ export function getProximoNumeroTAM(contratoId, medicaoInicio, tipo) {
 /**
  * Cria nova TAM com quantidades zeradas (SIGDV-06)
  */
-export function criarTAM(contratoId, tipo, medicaoInicio, dataInicio, observacao, inicioContrato, terminoContrato) {
+export function criarTAM(contratoId, tipo, medicaoInicio, dataInicio, observacao, inicioContrato, terminoContrato, periodo) {
   const itens = itensContrato[contratoId] || [];
   const numero = getProximoNumeroTAM(contratoId, medicaoInicio, tipo);
 
@@ -124,7 +124,7 @@ export function criarTAM(contratoId, tipo, medicaoInicio, dataInicio, observacao
     dataTermino,
     inicioContrato: tipo === 'PRORROGACAO' ? inicioContrato : undefined,
     terminoContrato: tipo === 'PRORROGACAO' ? terminoContrato : undefined,
-    periodo: Math.floor(Math.random() * 5) + 1, // Simulação
+    periodo: periodo || 1,
     observacao,
     baseMedicao: 0,
     itens: itensZerados,
@@ -149,6 +149,7 @@ export function atualizarTAM(tamId, dados) {
       if (dados.inicioContrato !== undefined) tam.inicioContrato = dados.inicioContrato;
       if (dados.terminoContrato !== undefined) tam.terminoContrato = dados.terminoContrato;
       if (dados.observacao !== undefined) tam.observacao = dados.observacao;
+      if (dados.periodo !== undefined) tam.periodo = dados.periodo;
       if (dados.itens !== undefined) tam.itens = dados.itens;
       return tam;
     }

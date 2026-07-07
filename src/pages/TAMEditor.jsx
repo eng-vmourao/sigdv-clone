@@ -54,9 +54,10 @@ export default function TAMEditor() {
 
   // Estado do formulário
   const [tipo, setTipo] = useState('PRORROGACAO')
-  const [medicaoInicio, setMedicaoInicio] = useState('')
-  const [dataInicio, setDataInicio] = useState('')
-  const [inicioContrato, setInicioContrato] = useState('')
+  const [medicaoInicio, setMedicaoInicio] = useState(tamExistente?.medicaoInicio?.toString() || '1')
+  const [dataInicio, setDataInicio] = useState(tamExistente?.dataInicio || '')
+  const [periodo, setPeriodo] = useState(tamExistente?.periodo || '')
+  const [inicioContrato, setInicioContrato] = useState(tamExistente?.inicioContrato || '')
   const [terminoContrato, setTerminoContrato] = useState('')
   const [modoAnulacao, setModoAnulacao] = useState('medicao')
   const [observacao, setObservacao] = useState('')
@@ -158,25 +159,29 @@ export default function TAMEditor() {
     setMedicaoInicio(val)
     setHasChanges(true)
     
-    if (val === 'proxima') {
+    if (!isNew && tamExistente?.medicaoInicio) {
+      setMedicaoInicio(tamExistente.medicaoInicio.toString())
+    } else if (isNew) {
       if (medicoesContrato.length > 0) {
         const last = medicoesContrato[medicoesContrato.length - 1]
         if (last.periodoTermino) {
-          const d = new Date(last.periodoTermino)
+          const d = new Date(last.periodoTermino + 'T12:00:00')
           d.setDate(d.getDate() + 1)
           setDataInicio(d.toISOString().split('T')[0])
-        } else {
-          setDataInicio('')
         }
-      } else {
-        setDataInicio(contrato?.orcamento?.dataInicio || '')
+        setPeriodo(tipo === 'PRORROGACAO' ? last.periodo + 1 : last.periodo)
+      } else if (contrato?.orcamento) {
+        setDataInicio(contrato.orcamento.dataInicio)
+        setPeriodo(1)
       }
     } else {
       const med = medicoesContrato.find(m => m.numero.toString() === val)
       if (med) {
         setDataInicio(med.periodoInicio)
+        setPeriodo(med.periodo)
       } else {
         setDataInicio('')
+        setPeriodo('')
       }
     }
   }
@@ -199,22 +204,32 @@ export default function TAMEditor() {
         }
       }
       
-      const novaTAM = criarTAM(Number(contratoId), tipo, medicaoInicio, dataInicio, observacao, inicioContrato, terminoContrato)
-      if (itens.length > 0) {
-        atualizarItensTAM(novaTAM.id, itens)
-      }
-      setSaveMessage('TAM criada com sucesso!')
-      setTimeout(() => navigate(`/contratos/${contratoId}`), 1000)
-    } else {
-      atualizarTAM(Number(tamId), {
+      const nova = tamService.criarTAM(
+        contrato.id,
         tipo,
         medicaoInicio,
         dataInicio,
-        inicioContrato: tipo === 'PRORROGACAO' ? inicioContrato : undefined,
-        terminoContrato: tipo === 'PRORROGACAO' ? terminoContrato : undefined,
         observacao,
-        itens
+        inicioContrato,
+        terminoContrato,
+        periodo
+      )
+      if (itens.length > 0) {
+        atualizarItensTAM(nova.id, itens)
+      }
+      setSaveMessage('TAM criada com sucesso!')
+      navigate(`/contrato/${contrato.id}/tam/${nova.id}`, { state: { contrato, isNew: false, tamExistente: nova } })
+    } else {
+      tamService.atualizarTAM(tamExistente.id, {
+        tipo,
+        medicaoInicio,
+        dataInicio,
+        inicioContrato,
+        terminoContrato,
+        observacao,
+        periodo,
       })
+      tamService.atualizarItensTAM(tamExistente.id, itens)
       setHasChanges(false)
       setSaveMessage('Alterações salvas com sucesso!')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -274,7 +289,7 @@ export default function TAMEditor() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Período</label>
-                  <input className="form-control" value={tamExistente?.periodo || '-'} disabled />
+                  <input className="form-control" value={periodo || '-'} disabled />
                 </div>
               </div>
               <div className="form-row">
