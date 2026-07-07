@@ -134,6 +134,13 @@ export function parseByType(input, type) {
  */
 export function formatDate(date) {
   if (!date) return '';
+  
+  // Previne bug de timezone do JS (que converte YYYY-MM-DD para UTC e exibe -3h local, subtraindo 1 dia)
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
+    const [y, m, d] = date.trim().split('-');
+    return `${d}/${m}/${y}`;
+  }
+
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('pt-BR');
