@@ -1,22 +1,28 @@
 import contratos from './contratos';
 
+function parseDate(str) {
+  const parts = str.split('-');
+  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+}
+
 function generateMedicoesForContrato(contrato) {
   const medicoes = [];
-  // Ensure we interpret dates strictly without timezone shift
-  let currentStart = new Date(contrato.dataInicio + 'T00:00:00');
-  const end = new Date(contrato.dataTermino + 'T00:00:00');
+  // Usa construtor manual para evitar qualquer problema de timezone
+  let currentStart = parseDate(contrato.dataInicio);
+  const end = parseDate(contrato.dataTermino);
   let medNumber = 1;
   let globalId = contrato.id * 100 + 1;
 
   while (currentStart <= end) {
-    let next15 = new Date(currentStart);
+    let next15 = new Date(currentStart.getFullYear(), currentStart.getMonth(), currentStart.getDate());
+    
     if (next15.getDate() > 15) {
       next15.setMonth(next15.getMonth() + 1);
     }
     next15.setDate(15);
 
     if (next15 > end) {
-      next15 = new Date(end);
+      next15 = new Date(end.getFullYear(), end.getMonth(), end.getDate());
     }
 
     let isLast = false;
@@ -24,8 +30,6 @@ function generateMedicoesForContrato(contrato) {
       isLast = true;
     }
 
-    // 1 ano = 12 meses. Cada PRORROGAÇÃO deveria mudar o periodo. Mas por simplificação na mock de medições, a cada 12 medições consideramos 1 período (anos civis da obra).
-    // O backend real controlaria isso via TAMs
     const periodo = Math.floor((medNumber - 1) / 12) + 1;
     
     const formatDate = (d) => {
@@ -51,8 +55,8 @@ function generateMedicoesForContrato(contrato) {
 
     if (isLast) break;
 
-    currentStart = new Date(next15);
-    currentStart.setDate(currentStart.getDate() + 1); // 16th
+    // Próximo início será exatamente 1 dia após next15
+    currentStart = new Date(next15.getFullYear(), next15.getMonth(), next15.getDate() + 1);
     medNumber++;
   }
   return medicoes;
