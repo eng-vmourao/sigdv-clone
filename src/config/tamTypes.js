@@ -263,19 +263,21 @@ export const TAM_TYPES = {
     label: 'Reajuste',
     columns: [
       'codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente',
+      'descUnitPerc', 'descUnitValor', 'descUnitTotal',
       'reajUnitPerc', 'reajUnitValor', 'reajUnitTotal',
       'precoUnitFinal', 'valorFinal'
     ],
-    editable: ['reajUnitPerc', 'reajUnitValor'],
+    editable: ['descUnitPerc', 'descUnitValor', 'reajUnitPerc', 'reajUnitValor'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
-    calculated: ['reajUnitTotal', 'precoUnitFinal', 'valorFinal', 'valorTotalVigente'],
+    calculated: ['descUnitTotal', 'reajUnitTotal', 'precoUnitFinal', 'valorFinal', 'valorTotalVigente'],
     allowNewItem: false,
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
+      const descUnitTotal = calcDescUnitTotal(row);
       const reajUnitTotal = calcReajUnitTotal(row);
-      const precoUnitFinal = Number(((row.precoUnitVigente || 0) + reajUnitTotal).toFixed(2));
+      const precoUnitFinal = Number(((row.precoUnitVigente || 0) - descUnitTotal + reajUnitTotal).toFixed(2));
       const valorFinal = Number(((row.qtdVigente || 0) * precoUnitFinal).toFixed(2));
-      return { ...row, valorTotalVigente, reajUnitTotal, precoUnitFinal, valorFinal };
+      return { ...row, valorTotalVigente, descUnitTotal, reajUnitTotal, precoUnitFinal, valorFinal };
     },
     totals: {
       itemCount: true,

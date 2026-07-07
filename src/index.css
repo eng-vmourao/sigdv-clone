@@ -1018,7 +1018,7 @@ a:hover {
   padding: 6px 10px;
   position: absolute;
   z-index: 9999;
-  bottom: 125%;
+  top: 125%;
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
@@ -1035,12 +1035,12 @@ a:hover {
 .custom-tooltip-container .custom-tooltip-text::after {
   content: "";
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #34495e transparent transparent transparent;
+  border-color: transparent transparent #34495e transparent;
 }
 
 .custom-tooltip-container:hover .custom-tooltip-text {
