@@ -14,7 +14,8 @@ export const COLUMN_LABELS = {
   variacaoQtd: 'Variação de Qtd.',
   qtdAcrescida: 'Qtd. Acrescida',
   qtdSuprimida: 'Qtd. Suprimida',
-  anularItem: 'Anular item?',
+  anularMedicao: 'Anular ao término da medição:',
+  anularPeriodo: 'Anular ao término do período:',
   descUnitPerc: 'Desc. Unit. (%)',
   descUnitValor: 'Desc. Unit. (R$)',
   descUnitTotal: 'Desc. Unit. Total (R$)',
@@ -46,7 +47,8 @@ export const COLUMN_TYPES = {
   variacaoQtd: 'quantity',
   qtdAcrescida: 'quantity',
   qtdSuprimida: 'quantity',
-  anularItem: 'select',
+  anularMedicao: 'select_medicao',
+  anularPeriodo: 'select_periodo',
   descUnitPerc: 'percent',
   descUnitValor: 'currency',
   descUnitTotal: 'currency',
@@ -58,8 +60,7 @@ export const COLUMN_TYPES = {
   valorFinal: 'currency',
 };
 
-// Opções para o campo "Anular item?"
-export const ANULAR_OPTIONS = ['Sim', 'Não'];
+// Removido ANULAR_OPTIONS estático. As opções serão dinâmicas (medições ou períodos)
 
 // Larguras sugeridas para cada coluna (em px)
 export const COLUMN_WIDTHS = {
@@ -69,9 +70,9 @@ export const COLUMN_WIDTHS = {
   precoUnitVigente: 110,
   valorTotalVigente: 120,
   variacaoQtd: 90,
-  qtdAcrescida: 90,
   qtdSuprimida: 90,
-  anularItem: 85,
+  anularMedicao: 150,
+  anularPeriodo: 150,
   descUnitPerc: 75,
   descUnitValor: 95,
   descUnitTotal: 110,
@@ -235,15 +236,16 @@ export const TAM_TYPES = {
     label: 'Anulação',
     columns: [
       'codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente',
-      'anularItem', 'qtdFinal', 'valorFinal'
+      'anularMedicao', 'anularPeriodo', 'qtdFinal', 'valorFinal'
     ],
-    editable: ['anularItem'],
+    editable: ['anularMedicao', 'anularPeriodo'],
     protected: ['codigoItem', 'descricao', 'qtdVigente', 'precoUnitVigente', 'valorTotalVigente'],
     calculated: ['qtdFinal', 'valorFinal', 'valorTotalVigente'],
     allowNewItem: false,
     calcRow: (row) => {
       const valorTotalVigente = calcValorTotalVigente(row);
-      const anular = row.anularItem === 'Sim';
+      // O item é anulado se alguma medição ou período for selecionado.
+      const anular = !!row.anularMedicao || !!row.anularPeriodo;
       const qtdFinal = anular ? 0 : (row.qtdVigente || 0);
       const valorFinal = anular ? 0 : valorTotalVigente;
       return { ...row, valorTotalVigente, qtdFinal, valorFinal };
@@ -253,9 +255,7 @@ export const TAM_TYPES = {
       valorTotalVigente: 'sum',
       valorFinal: 'sum',
     },
-    validations: [
-      { field: 'anularItem', rule: 'oneOf', options: ['Sim', 'Não'], message: 'Anular item? deve ser "Sim" ou "Não".' },
-    ],
+    validations: [],
   },
 
   REAJUSTE: {

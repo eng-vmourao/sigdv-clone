@@ -48,7 +48,7 @@ export function getTAM(tamId) {
           case 'SUPRESSAO':
             return { ...base, qtdSuprimida: 0 };
           case 'ANULACAO':
-            return { ...base, anularItem: 'Não' };
+            return { ...base, anularMedicao: '', anularPeriodo: '' };
           case 'REAJUSTE':
             return { ...base, reajUnitPerc: 0, reajUnitValor: 0 };
           case 'DESCONTO':
@@ -66,18 +66,24 @@ export function getTAM(tamId) {
 /**
  * Obtém o próximo número de TAM para um contrato (SIGDV-09)
  */
-export function getProximoNumeroTAM(contratoId) {
+export function getProximoNumeroTAM(contratoId, medicaoInicio, tipo) {
   const tamsList = tamsState[contratoId] || [];
   if (tamsList.length === 0) return 1;
+  
+  if (tipo !== 'PRORROGACAO' && medicaoInicio) {
+    const existing = tamsList.find(t => t.medicaoInicio === medicaoInicio && t.tipo !== 'PRORROGACAO');
+    if (existing) return existing.numero;
+  }
+  
   return Math.max(...tamsList.map(t => t.numero)) + 1;
 }
 
 /**
  * Cria nova TAM com quantidades zeradas (SIGDV-06)
  */
-export function criarTAM(contratoId, tipo, dataInicio, dataTermino, observacao) {
+export function criarTAM(contratoId, tipo, medicaoInicio, dataInicio, observacao, inicioContrato, terminoContrato) {
   const itens = itensContrato[contratoId] || [];
-  const numero = getProximoNumeroTAM(contratoId);
+  const numero = getProximoNumeroTAM(contratoId, medicaoInicio, tipo);
 
   // Cria itens zerados baseados nos itens do contrato (SIGDV-06)
   const itensZerados = itens.map(item => {
@@ -98,7 +104,7 @@ export function criarTAM(contratoId, tipo, dataInicio, dataTermino, observacao) 
       case 'SUPRESSAO':
         return { ...base, qtdSuprimida: 0 };
       case 'ANULACAO':
-        return { ...base, anularItem: 'Não' };
+        return { ...base, anularMedicao: '', anularPeriodo: '' };
       case 'REAJUSTE':
         return { ...base, reajUnitPerc: 0, reajUnitValor: 0 };
       case 'DESCONTO':
@@ -111,14 +117,15 @@ export function criarTAM(contratoId, tipo, dataInicio, dataTermino, observacao) 
   const novaTAM = {
     id: nextId++,
     numero,
-    contratoId: Number(contratoId),
+    contratoId,
     tipo,
+    medicaoInicio,
     dataInicio,
     dataTermino,
-    inicioContrato: '',
-    terminoContrato: '',
-    periodo: 0,
-    observacao: observacao || '',
+    inicioContrato: tipo === 'PRORROGACAO' ? inicioContrato : undefined,
+    terminoContrato: tipo === 'PRORROGACAO' ? terminoContrato : undefined,
+    periodo: Math.floor(Math.random() * 5) + 1, // Simulação
+    observacao,
     baseMedicao: 0,
     itens: itensZerados,
   };

@@ -9,6 +9,7 @@ import CollapsibleSection from '../components/UI/CollapsibleSection'
 import ConfirmDialog from '../components/UI/ConfirmDialog'
 import { formatDate } from '../utils/formatters'
 import itensContrato from '../data/itensContrato'
+import medicoes from '../data/medicoes'
 
 // Helper para inicializar itens de nova TAM zerados
 function getItensZerados(contratoItens, tipo) {
@@ -28,7 +29,7 @@ function getItensZerados(contratoItens, tipo) {
       case 'SUPRESSAO':
         return { ...base, qtdSuprimida: 0 };
       case 'ANULACAO':
-        return { ...base, anularItem: 'Não' };
+        return { ...base, anularMedicao: '', anularPeriodo: '' };
       case 'REAJUSTE':
         return { ...base, reajUnitPerc: 0, reajUnitValor: 0 };
       case 'DESCONTO':
@@ -53,12 +54,25 @@ export default function TAMEditor() {
 
   // Estado do formulário
   const [tipo, setTipo] = useState('PRORROGACAO')
+  const [medicaoInicio, setMedicaoInicio] = useState('')
   const [dataInicio, setDataInicio] = useState('')
-  const [dataTermino, setDataTermino] = useState('')
+  const [inicioContrato, setInicioContrato] = useState('')
+  const [terminoContrato, setTerminoContrato] = useState('')
+  const [modoAnulacao, setModoAnulacao] = useState('medicao')
   const [observacao, setObservacao] = useState('')
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+
+  // Carrega Medições
+  const medicoesContrato = useMemo(() => {
+    const list = medicoes[Number(contratoId)] || []
+    return [...list].sort((a, b) => a.numero - b.numero)
+  }, [contratoId])
+
+  const proximaMedicaoNum = medicoesContrato.length > 0 
+    ? medicoesContrato[medicoesContrato.length - 1].numero + 1 
+    : 1
 
   // Carrega TAM existente
   const tamExistente = useMemo(() => {
@@ -66,8 +80,14 @@ export default function TAMEditor() {
     const tam = getTAM(Number(tamId))
     if (tam) {
       setTipo(tam.tipo)
-      setDataInicio(tam.dataInicio)
-      setDataTermino(tam.dataTermino)
+      setMedicaoInicio(tam.medicaoInicio || tam.baseMedicao || '')
+      setDataInicio(tam.dataInicio || '')
+      setInicioContrato(tam.inicioContrato || '')
+      setTerminoContrato(tam.terminoContrato || '')
+      if (tam.tipo === 'ANULACAO') {
+        const hasPeriodo = tam.itens?.some(i => !!i.anularPeriodo);
+        setModoAnulacao(hasPeriodo ? 'periodo' : 'medicao');
+      }
       setObservacao(tam.observacao || '')
     }
     return tam
@@ -80,14 +100,38 @@ export default function TAMEditor() {
     return getItensZerados(contratoItens, 'PRORROGACAO')
   })
 
-  // Próximo número (SIGDV-09)
+  // Próximo número (SIGDV-09 modificado para medicaoInicio)
   const proximoNumero = useMemo(() => {
     if (!isNew) return tamExistente?.numero
-    return getProximoNumeroTAM(Number(contratoId))
-  }, [contratoId, isNew, tamExistente])
+    return getProximoNumeroTAM(Number(contratoId), medicaoInicio, tipo)
+  }, [contratoId, isNew, tamExistente, medicaoInicio, tipo])
 
   // Config do tipo selecionado
   const config = useMemo(() => getTAMConfig(tipo), [tipo])
+
+  const modifiedConfig = useMemo(() => {
+    if (!config) return null;
+    if (tipo === 'ANULACAO') {
+      const newConfig = { ...config, columns: [...config.columns] }
+      if (modoAnulacao === 'medicao') {
+        newConfig.columns = newConfig.columns.filter(c => c !== 'anularPeriodo')
+      } else {
+        newConfig.columns = newConfig.columns.filter(c => c !== 'anularMedicao')
+      }
+      return newConfig;
+    }
+    return config;
+  }, [config, tipo, modoAnulacao]);
+
+  const selectOptions = useMemo(() => {
+    const medOptions = medicoesContrato.map(m => ({ value: m.numero.toString(), label: `Medição ${m.numero}` }))
+    const periodosMap = new Set(medicoesContrato.map(m => m.periodo).filter(Boolean))
+    const perOptions = Array.from(periodosMap).sort().map(p => ({ value: p.toString(), label: `Período ${p}` }))
+    return {
+      medicoes: medOptions,
+      periodos: perOptions
+    }
+  }, [medicoesContrato])
 
   // Handler de alteração de tipo
   const handleTipoChange = (novoTipo) => {
@@ -110,14 +154,52 @@ export default function TAMEditor() {
     setHasChanges(true)
   }, [])
 
+  const handleMedicaoChange = (val) => {
+    setMedicaoInicio(val)
+    setHasChanges(true)
+    
+    if (val === 'proxima') {
+      if (medicoesContrato.length > 0) {
+        const last = medicoesContrato[medicoesContrato.length - 1]
+        if (last.periodoTermino) {
+          const d = new Date(last.periodoTermino)
+          d.setDate(d.getDate() + 1)
+          setDataInicio(d.toISOString().split('T')[0])
+        } else {
+          setDataInicio('')
+        }
+      } else {
+        setDataInicio(contrato?.orcamento?.dataInicio || '')
+      }
+    } else {
+      const med = medicoesContrato.find(m => m.numero.toString() === val)
+      if (med) {
+        setDataInicio(med.periodoInicio)
+      } else {
+        setDataInicio('')
+      }
+    }
+  }
+
   // Salvar
   const handleSave = () => {
     if (isNew) {
-      if (!dataInicio || !dataTermino) {
-        alert('Datas de início e término são obrigatórias.')
+      if (!medicaoInicio) {
+        alert('Selecione a Medição Início.')
         return
       }
-      const novaTAM = criarTAM(Number(contratoId), tipo, dataInicio, dataTermino, observacao)
+      
+      if (tipo !== 'PRORROGACAO' && dataInicio && contrato?.orcamento) {
+        const di = new Date(dataInicio)
+        const cInicio = new Date(contrato.orcamento.dataInicio)
+        const cTerm = new Date(contrato.orcamento.dataTermino)
+        if (di < cInicio || di > cTerm) {
+          alert('A Data Início gerada não está compreendida no período de vigência do contrato.')
+          return
+        }
+      }
+      
+      const novaTAM = criarTAM(Number(contratoId), tipo, medicaoInicio, dataInicio, observacao, inicioContrato, terminoContrato)
       if (itens.length > 0) {
         atualizarItensTAM(novaTAM.id, itens)
       }
@@ -190,25 +272,41 @@ export default function TAMEditor() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Data Início (TAM)</label>
+                  <label className="form-label">Medição Início</label>
+                  <select
+                    className="form-control"
+                    value={medicaoInicio}
+                    onChange={e => handleMedicaoChange(e.target.value)}
+                    disabled={!isNew}
+                  >
+                    <option value="">Selecione...</option>
+                    {medicoesContrato.map(m => (
+                      <option key={m.numero} value={m.numero.toString()}>Medição {m.numero}</option>
+                    ))}
+                    {isNew && <option value="proxima">Próxima Medição ({proximaMedicaoNum})</option>}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Data Início</label>
                   <input
                     type="date"
                     className="form-control"
                     value={dataInicio}
-                    onChange={e => { setDataInicio(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
+                    disabled
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Data Término (TAM)</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={dataTermino}
-                    onChange={e => { setDataTermino(e.target.value); setHasChanges(true) }}
-                    disabled={!isNew}
-                  />
-                </div>
+                {tipo === 'PRORROGACAO' && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Início (Contrato)</label>
+                      <input type="date" className="form-control" value={inicioContrato} onChange={e => { setInicioContrato(e.target.value); setHasChanges(true) }} disabled={!isNew} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Término (Contrato)</label>
+                      <input type="date" className="form-control" value={terminoContrato} onChange={e => { setTerminoContrato(e.target.value); setHasChanges(true) }} disabled={!isNew} />
+                    </div>
+                  </>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Observação</label>
@@ -224,13 +322,27 @@ export default function TAMEditor() {
         </CollapsibleSection>
 
         {/* ITENS DA TAM — Tabela Configurável */}
-        <CollapsibleSection title={`Itens da TAM — ${config?.label || tipo}`} defaultOpen={true}>
-          {config ? (
+        <CollapsibleSection title={`Itens da TAM — ${modifiedConfig?.label || tipo}`} defaultOpen={true}>
+          {tipo === 'ANULACAO' && (
+            <div style={{ padding: '0 16px 16px', display: 'flex', gap: 16, alignItems: 'center' }}>
+              <strong>Modo de Anulação:</strong>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input type="radio" name="modoAnulacao" value="medicao" checked={modoAnulacao === 'medicao'} onChange={() => { setModoAnulacao('medicao'); setHasChanges(true) }} disabled={!isNew} />
+                Por Medição
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input type="radio" name="modoAnulacao" value="periodo" checked={modoAnulacao === 'periodo'} onChange={() => { setModoAnulacao('periodo'); setHasChanges(true) }} disabled={!isNew} />
+                Por Período
+              </label>
+            </div>
+          )}
+          {modifiedConfig ? (
             <ConfigurableTable
-              config={config}
+              config={modifiedConfig}
               rows={itens}
               onRowChange={handleRowChange}
               onAddItem={null}
+              selectOptions={selectOptions}
             />
           ) : (
             <div className="alert alert-warning">

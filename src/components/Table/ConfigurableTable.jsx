@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, ANULAR_OPTIONS, CALC_TOOLTIPS } from '../../config/tamTypes'
+import { COLUMN_LABELS, COLUMN_TYPES, COLUMN_WIDTHS, CALC_TOOLTIPS } from '../../config/tamTypes'
 import { formatByType, parseByType } from '../../utils/formatters'
 import { validateRow } from '../../utils/validators'
 
@@ -187,7 +187,7 @@ export const CellInput = ({ value, type, onChange, placeholder, style, error, ro
  * Tabela genérica configurável — renderiza colunas baseado na configuração do tipo de TAM
  * Suporta: colunas protegidas, editáveis, calculadas, totais, validações
  */
-export default function ConfigurableTable({ config, rows, onRowChange, onAddItem }) {
+export default function ConfigurableTable({ config, rows, onRowChange, onAddItem, selectOptions = {} }) {
   const [search, setSearch] = useState('')
 
   // Filtra linhas pela busca
@@ -265,7 +265,11 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
     ].filter(Boolean).join(' ')
 
     if (state === 'editable') {
-      if (type === 'select') {
+      if (type === 'select' || type === 'select_medicao' || type === 'select_periodo') {
+        let options = [];
+        if (type === 'select_medicao') options = selectOptions.medicoes || [];
+        else if (type === 'select_periodo') options = selectOptions.periodos || [];
+        
         return (
           <td key={col} className={cellClass} style={{ minWidth: COLUMN_WIDTHS[col] }}>
             <select
@@ -297,8 +301,8 @@ export default function ConfigurableTable({ config, rows, onRowChange, onAddItem
               }}
             >
               <option value="">Selecione</option>
-              {ANULAR_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+              {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
             {cellError && <div className={`alert-${cellError.type}`} style={{ fontSize: '0.65rem', padding: '2px 4px', marginTop: 2 }}>{cellError.message}</div>}

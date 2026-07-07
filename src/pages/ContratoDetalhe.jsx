@@ -518,8 +518,8 @@ export default function ContratoDetalhe() {
                 <tr>
                   <th></th>
                   <th></th>
-                  <th>Início (TAM)</th>
-                  <th>Término (TAM)</th>
+                  <th>Medição Início</th>
+                  <th>Data Início</th>
                   <th>Início (Contrato)</th>
                   <th>Término (Contrato)</th>
                   <th></th>
@@ -538,10 +538,10 @@ export default function ContratoDetalhe() {
                     <tr key={tam.id}>
                       <td><strong>{tam.numero}</strong></td>
                       <td>{TAM_TYPES[tam.tipo]?.label || tam.tipo}</td>
+                      <td style={{ textAlign: 'center' }}>{tam.medicaoInicio || tam.baseMedicao || '-'}</td>
                       <td>{formatDate(tam.dataInicio)}</td>
-                      <td>{formatDate(tam.dataTermino)}</td>
-                      <td>{formatDate(tam.inicioContrato)}</td>
-                      <td>{formatDate(tam.terminoContrato)}</td>
+                      <td>{tam.tipo === 'PRORROGACAO' ? formatDate(tam.inicioContrato) : '-'}</td>
+                      <td>{tam.tipo === 'PRORROGACAO' ? formatDate(tam.terminoContrato) : '-'}</td>
                       <td>{tam.periodo}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 4 }}>
