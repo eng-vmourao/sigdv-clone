@@ -45,41 +45,56 @@ export default function ContratoDetalhe() {
     setOrcamento(prev => {
       let next = { ...prev, [field]: value };
       
-      // Validações e cálculos automáticos para datas
+      // Validação de datas
       if (field === 'dataInicio' || field === 'dataTermino') {
-        if (next.dataInicio && next.dataTermino) {
-          if (next.dataTermino < next.dataInicio) {
-            alert('A data de término não pode ser anterior à data de início.');
-            next.dataTermino = ''; // Limpa a data inválida
-          } else {
-            // Calcula a diferença
-            const d1 = new Date(next.dataInicio);
-            const d2 = new Date(next.dataTermino);
-            
-            const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
-            const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
-            const isSameDay = d2.getUTCDate() === d1.getUTCDate();
-            
-            if (isSameDay && diffMonths > 0 && diffMonths % 12 === 0) {
-              next.duracao = diffYears;
-              next.duracaoUnidade = 'anos';
-            } else if (isSameDay && diffMonths > 0) {
-              next.duracao = diffMonths;
-              next.duracaoUnidade = 'meses';
-            } else {
-              const diffTime = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate()) - 
-                               Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
-              const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-              next.duracao = diffDays;
-              next.duracaoUnidade = 'dias';
-            }
-          }
+        if (next.dataInicio && next.dataTermino && next.dataTermino < next.dataInicio) {
+          alert('A data de término não pode ser anterior à data de início.');
+          next.dataTermino = ''; // Limpa a data inválida
         }
       }
       
       return next;
     });
   };
+
+  // Cálculo automático da duração sempre que as datas mudarem
+  useEffect(() => {
+    setOrcamento(prev => {
+      if (!prev.dataInicio || !prev.dataTermino || prev.dataTermino < prev.dataInicio) {
+        return prev;
+      }
+      
+      const d1 = new Date(prev.dataInicio);
+      const d2 = new Date(prev.dataTermino);
+      
+      const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
+      const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
+      const isSameDay = d2.getUTCDate() === d1.getUTCDate();
+      
+      let novaDuracao = prev.duracao;
+      let novaUnidade = prev.duracaoUnidade;
+
+      if (isSameDay && diffMonths > 0 && diffMonths % 12 === 0) {
+        novaDuracao = diffYears;
+        novaUnidade = 'anos';
+      } else if (isSameDay && diffMonths > 0) {
+        novaDuracao = diffMonths;
+        novaUnidade = 'meses';
+      } else {
+        const diffTime = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate()) - 
+                         Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        novaDuracao = diffDays;
+        novaUnidade = 'dias';
+      }
+
+      if (prev.duracao !== novaDuracao || prev.duracaoUnidade !== novaUnidade) {
+        return { ...prev, duracao: novaDuracao, duracaoUnidade: novaUnidade };
+      }
+      
+      return prev;
+    });
+  }, [orcamento.dataInicio, orcamento.dataTermino]);
 
   // Sincronizar estado local quando o contrato carregar/atualizar
   useEffect(() => {
