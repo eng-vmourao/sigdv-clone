@@ -32,6 +32,8 @@ export default function ContratoDetalhe() {
     leiAplicavel: contrato?.leiAplicavel || '',
   });
 
+  const [isDuracaoManual, setIsDuracaoManual] = useState(false);
+
   const [orcamento, setOrcamento] = useState({
     dataInicio: contrato?.dataInicio || '',
     dataTermino: contrato?.dataTermino || '',
@@ -57,8 +59,10 @@ export default function ContratoDetalhe() {
     });
   };
 
-  // Cálculo automático da duração sempre que as datas mudarem
+  // Cálculo automático da duração sempre que as datas ou a unidade mudarem
   useEffect(() => {
+    if (isDuracaoManual) return;
+    
     setOrcamento(prev => {
       if (!prev.dataInicio || !prev.dataTermino || prev.dataTermino < prev.dataInicio) {
         return prev;
@@ -67,34 +71,43 @@ export default function ContratoDetalhe() {
       const d1 = new Date(prev.dataInicio);
       const d2 = new Date(prev.dataTermino);
       
-      const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
-      const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
-      const isSameDay = d2.getUTCDate() === d1.getUTCDate();
+      const diffTime = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate()) - 
+                       Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
       let novaDuracao = prev.duracao;
-      let novaUnidade = prev.duracaoUnidade;
 
-      if (isSameDay && diffMonths > 0 && diffMonths % 12 === 0) {
-        novaDuracao = diffYears;
-        novaUnidade = 'anos';
-      } else if (isSameDay && diffMonths > 0) {
-        novaDuracao = diffMonths;
-        novaUnidade = 'meses';
+      if (prev.duracaoUnidade === 'anos') {
+        const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
+        const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
+        const isSameDay = d2.getUTCDate() === d1.getUTCDate();
+        
+        if (isSameDay && diffMonths > 0 && diffMonths % 12 === 0) {
+          novaDuracao = diffYears;
+        } else {
+          novaDuracao = Number((diffDays / 365).toFixed(2));
+        }
+      } else if (prev.duracaoUnidade === 'meses') {
+        const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
+        const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
+        const isSameDay = d2.getUTCDate() === d1.getUTCDate();
+        
+        if (isSameDay && diffMonths > 0) {
+          novaDuracao = diffMonths;
+        } else {
+          novaDuracao = Number((diffDays / 30).toFixed(2));
+        }
       } else {
-        const diffTime = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate()) - 
-                         Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         novaDuracao = diffDays;
-        novaUnidade = 'dias';
       }
 
-      if (prev.duracao !== novaDuracao || prev.duracaoUnidade !== novaUnidade) {
-        return { ...prev, duracao: novaDuracao, duracaoUnidade: novaUnidade };
+      if (prev.duracao !== novaDuracao) {
+        return { ...prev, duracao: novaDuracao };
       }
       
       return prev;
     });
-  }, [orcamento.dataInicio, orcamento.dataTermino]);
+  }, [orcamento.dataInicio, orcamento.dataTermino, orcamento.duracaoUnidade, isDuracaoManual]);
 
   // Sincronizar estado local quando o contrato carregar/atualizar
   useEffect(() => {
@@ -300,10 +313,34 @@ export default function ContratoDetalhe() {
                 <input type="date" className="form-control" min={orcamento.dataInicio} value={orcamento.dataTermino} onChange={e => handleOrcamentoChange('dataTermino', e.target.value)} />
               </div>
               <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Duração do contrato (Período)</label>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center' }}>
+                  Duração do contrato (Período)
+                  <button 
+                    type="button" 
+                    className="btn btn-sm btn-link" 
+                    style={{ padding: 0, marginLeft: '8px', fontSize: '12px' }} 
+                    onClick={() => setIsDuracaoManual(!isDuracaoManual)}
+                    title={isDuracaoManual ? "Voltar ao cálculo automático" : "Preencher manualmente"}
+                  >
+                    {isDuracaoManual ? '🔓 Manual' : '🔒 Auto'}
+                  </button>
+                </label>
                 <div style={{ display: 'flex' }}>
-                  <input type="number" className="form-control" style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }} value={orcamento.duracao} onChange={e => handleOrcamentoChange('duracao', e.target.value)} />
-                  <select className="form-control" style={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} value={orcamento.duracaoUnidade} onChange={e => handleOrcamentoChange('duracaoUnidade', e.target.value)}>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    className="form-control" 
+                    style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0, backgroundColor: isDuracaoManual ? '#fff' : '#e9ecef' }} 
+                    value={orcamento.duracao} 
+                    onChange={e => handleOrcamentoChange('duracao', e.target.value)} 
+                    readOnly={!isDuracaoManual}
+                  />
+                  <select 
+                    className="form-control" 
+                    style={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} 
+                    value={orcamento.duracaoUnidade} 
+                    onChange={e => handleOrcamentoChange('duracaoUnidade', e.target.value)}
+                  >
                     <option value="dias">Dias</option>
                     <option value="meses">Meses</option>
                     <option value="anos">Anos</option>
