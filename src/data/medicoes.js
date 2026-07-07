@@ -39,6 +39,9 @@ function generateMedicoesForContrato(contrato) {
       return `${yy}-${mm}-${dd}`;
     };
 
+    // Geração determinística de valores para evitar mudança ao atualizar a página
+    const pseudoRandom = ((contrato.id * 7919) + (medNumber * 104729)) % 800000;
+
     medicoes.push({
       id: globalId++,
       numero: medNumber,
@@ -48,7 +51,7 @@ function generateMedicoesForContrato(contrato) {
       periodo: periodo,
       prazoVigenteContrato: medNumber,
       nrProtocolo: `P-${currentStart.getFullYear()}-${String(medNumber).padStart(3, '0')}`,
-      medicaoR$: 200000 + Math.round(Math.random() * 800000),
+      medicaoR$: 200000 + pseudoRandom,
       reajusteR$: 0,
       descontoR$: 0,
     });
