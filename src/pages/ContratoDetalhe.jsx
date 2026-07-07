@@ -42,7 +42,43 @@ export default function ContratoDetalhe() {
   });
 
   const handleOrcamentoChange = (field, value) => {
-    setOrcamento(prev => ({ ...prev, [field]: value }));
+    setOrcamento(prev => {
+      let next = { ...prev, [field]: value };
+      
+      // Validações e cálculos automáticos para datas
+      if (field === 'dataInicio' || field === 'dataTermino') {
+        if (next.dataInicio && next.dataTermino) {
+          if (next.dataTermino < next.dataInicio) {
+            alert('A data de término não pode ser anterior à data de início.');
+            next.dataTermino = ''; // Limpa a data inválida
+          } else {
+            // Calcula a diferença
+            const d1 = new Date(next.dataInicio);
+            const d2 = new Date(next.dataTermino);
+            
+            const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
+            const diffMonths = diffYears * 12 + (d2.getUTCMonth() - d1.getUTCMonth());
+            const isSameDay = d2.getUTCDate() === d1.getUTCDate();
+            
+            if (isSameDay && diffMonths > 0 && diffMonths % 12 === 0) {
+              next.duracao = diffYears;
+              next.duracaoUnidade = 'anos';
+            } else if (isSameDay && diffMonths > 0) {
+              next.duracao = diffMonths;
+              next.duracaoUnidade = 'meses';
+            } else {
+              const diffTime = Date.UTC(d2.getUTCFullYear(), d2.getUTCMonth(), d2.getUTCDate()) - 
+                               Date.UTC(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate());
+              const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+              next.duracao = diffDays;
+              next.duracaoUnidade = 'dias';
+            }
+          }
+        }
+      }
+      
+      return next;
+    });
   };
 
   // Sincronizar estado local quando o contrato carregar/atualizar
@@ -246,10 +282,10 @@ export default function ContratoDetalhe() {
               </div>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Data Término</label>
-                <input type="date" className="form-control" value={orcamento.dataTermino} onChange={e => handleOrcamentoChange('dataTermino', e.target.value)} />
+                <input type="date" className="form-control" min={orcamento.dataInicio} value={orcamento.dataTermino} onChange={e => handleOrcamentoChange('dataTermino', e.target.value)} />
               </div>
               <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Duração do contrato</label>
+                <label className="form-label">Duração do contrato (Período)</label>
                 <div style={{ display: 'flex' }}>
                   <input type="number" className="form-control" style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }} value={orcamento.duracao} onChange={e => handleOrcamentoChange('duracao', e.target.value)} />
                   <select className="form-control" style={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} value={orcamento.duracaoUnidade} onChange={e => handleOrcamentoChange('duracaoUnidade', e.target.value)}>
