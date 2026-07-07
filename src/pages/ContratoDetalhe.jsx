@@ -36,7 +36,7 @@ export default function ContratoDetalhe() {
     dataInicio: contrato?.dataInicio || '',
     dataTermino: contrato?.dataTermino || '',
     duracao: '',
-    duracaoUnidade: 'meses',
+    duracaoUnidade: 'anos',
     passivelProrrogacao: 'Sim',
     meios: 'PRODESP',
   });
