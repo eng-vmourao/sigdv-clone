@@ -25,11 +25,25 @@ export default function ContratoDetalhe() {
 
   const [infoGerais, setInfoGerais] = useState({
     dataAssinatura: '',
-    objetoContrato: '',
+    objetoContrato: contrato?.objetoResumido || '',
     dataBaseContrato: '',
     dataPrimeiraNotaServico: '',
-    coordenadoria: ''
-  })
+    coordenadoria: contrato?.coordenadoria || '',
+    leiAplicavel: contrato?.leiAplicavel || '',
+  });
+
+  const [orcamento, setOrcamento] = useState({
+    dataInicio: contrato?.dataInicio || '',
+    dataTermino: contrato?.dataTermino || '',
+    duracao: '',
+    duracaoUnidade: 'meses',
+    passivelProrrogacao: 'Sim',
+    meios: 'PRODESP',
+  });
+
+  const handleOrcamentoChange = (field, value) => {
+    setOrcamento(prev => ({ ...prev, [field]: value }));
+  };
 
   // Sincronizar estado local quando o contrato carregar/atualizar
   useEffect(() => {
@@ -216,10 +230,73 @@ export default function ContratoDetalhe() {
 
         {/* ORÇAMENTO E CONTRATAÇÃO INICIAL */}
         <CollapsibleSection title="Orçamento e Contratação Inicial" defaultOpen={false} storageKey={`contrato_${id}_orcamento`}>
-          <div className="table-controls" style={{ marginBottom: 8 }}>
+          <div style={{ padding: '16px', backgroundColor: '#fff', borderRadius: '4px', border: '1px solid #ddd', marginBottom: '16px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label className="form-label">Importar Excel (xlsx)</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input type="file" accept=".xlsx" className="form-control" style={{ maxWidth: '400px' }} />
+                <button className="btn btn-primary">Importar</button>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Data Início</label>
+                <input type="date" className="form-control" value={orcamento.dataInicio} onChange={e => handleOrcamentoChange('dataInicio', e.target.value)} />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Data Término</label>
+                <input type="date" className="form-control" value={orcamento.dataTermino} onChange={e => handleOrcamentoChange('dataTermino', e.target.value)} />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Duração do contrato</label>
+                <div style={{ display: 'flex' }}>
+                  <input type="number" className="form-control" style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }} value={orcamento.duracao} onChange={e => handleOrcamentoChange('duracao', e.target.value)} />
+                  <select className="form-control" style={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} value={orcamento.duracaoUnidade} onChange={e => handleOrcamentoChange('duracaoUnidade', e.target.value)}>
+                    <option value="dias">Dias</option>
+                    <option value="meses">Meses</option>
+                    <option value="anos">Anos</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Passível de Prorrogação</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <input type="radio" name="passivelProrrogacao" value="Sim" checked={orcamento.passivelProrrogacao === 'Sim'} onChange={e => handleOrcamentoChange('passivelProrrogacao', e.target.value)} />
+                    Sim
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <input type="radio" name="passivelProrrogacao" value="Não" checked={orcamento.passivelProrrogacao === 'Não'} onChange={e => handleOrcamentoChange('passivelProrrogacao', e.target.value)} />
+                    Não
+                  </label>
+                </div>
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Meios</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <input type="radio" name="meios" value="PRODESP" checked={orcamento.meios === 'PRODESP'} onChange={e => handleOrcamentoChange('meios', e.target.value)} />
+                    PRODESP
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <input type="radio" name="meios" value="SQA" checked={orcamento.meios === 'SQA'} onChange={e => handleOrcamentoChange('meios', e.target.value)} />
+                    SQA
+                  </label>
+                </div>
+              </div>
+              <div style={{ flex: 1 }}></div>
+            </div>
+          </div>
+
+          <div className="table-controls" style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
             <button className="btn btn-outline btn-sm" onClick={() => setShowNewItemModal(true)}>
               + Novo Item
             </button>
+            <input type="text" className="form-control" placeholder="Pesquisar..." style={{ maxWidth: '250px' }} />
           </div>
           <div className="table-wrapper">
             <table className="data-table">
